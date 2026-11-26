@@ -60,12 +60,15 @@ jobs:
           sleep 20
           import -window root shot_title.png || true
           ALIVE_TITLE=ok; kill -0 $PID 2>/dev/null || ALIVE_TITLE=dead
-          # engine uses SDL relative-warp mouse: absolute coords don't work.
-          # steer in-game pointer (starts centered at 320,240) onto "Start" (~60,45) via relative moves
+          # engine uses SDL relative-warp mouse: steer with many SMALL relative moves
+          # in-game pointer starts at (320,240); Start button ~ (60,45) => delta (-260,-195)
           xdotool mousemove 640 360 || true
           sleep 1
-          xdotool mousemove_relative -- -260 -195 || true
+          for s in $(seq 1 13); do xdotool mousemove_relative -- -20 -15 || true; sleep 0.15; done
           sleep 1
+          import -window root shot_mid.png || true
+          xdotool click 1 || true
+          sleep 2
           xdotool click 1 || true
           sleep 10
           xdotool key Return || true
@@ -76,6 +79,7 @@ jobs:
           echo "::group::freedink.log (tail)"; tail -60 freedink.log; echo "::endgroup::"
           # compress screenshots (project rule: screenshots must be small)
           convert shot_title.png -resize 800x smoke_title.webp || true
+          convert shot_mid.png -resize 800x smoke_mid.webp || true
           convert shot_after.png -resize 800x smoke_after.webp || true
           ls -la smoke_*.webp || true
           echo "title: $ALIVE_TITLE | after-interaction: $ALIVE_AFTER"
