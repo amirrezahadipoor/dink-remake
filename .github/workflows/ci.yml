@@ -60,11 +60,14 @@ jobs:
           sleep 20
           import -window root shot_title.png || true
           ALIVE_TITLE=ok; kill -0 $PID 2>/dev/null || ALIVE_TITLE=dead
-          # interact: click around menu area + keyboard
-          xdotool mousemove 640 360 click 1 || true
-          sleep 4
+          # click "Start" (640x480 window centered on 1280x720 -> Start label ~ (345,160))
+          xdotool mousemove 345 160 click 1 || true
+          sleep 8
+          # skip possible intro with ESC/Return
           xdotool key Return || true
-          sleep 6
+          sleep 4
+          xdotool key Escape || true
+          sleep 4
           import -window root shot_after.png || true
           ALIVE_AFTER=ok; kill -0 $PID 2>/dev/null || ALIVE_AFTER=dead
           kill $PID 2>/dev/null || true
