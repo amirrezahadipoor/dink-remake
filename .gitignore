@@ -1,0 +1,14 @@
+# base game data is fetched via fetch-data.sh (not versioned - see ROADMAP rules)
+/gamedata/
+# build outputs
+*.o
+*.apk
+*.aab
+/engine/freedink
+/engine/src/freedink
+build/
+.gradle/
+local.properties
+# temp
+*.tmp
+*.log

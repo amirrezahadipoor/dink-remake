@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  engine-linux:
+    name: Build engine (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential autoconf automake gettext autopoint \
+            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libsdl2-gfx-dev
+
+      - name: Configure
+        working-directory: engine
+        run: |
+          ./configure || { echo "::group::config.log"; cat config.log; echo "::endgroup::"; exit 1; }
+
+      - name: Build
+        working-directory: engine
+        run: make -j"$(nproc)"
+
+      - name: Upload engine binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: freedink-linux
+          path: engine/src/freedink
+          if-no-files-found: error
+
+  data-check:
+    name: Fetch & verify game data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch base game data
+        run: sh fetch-data.sh
+      - name: Verify layout
+        run: |
+          test -f gamedata/dink/Map.dat
+          test -f gamedata/dink/Hard.dat
+          test -d gamedata/dink/graphics
+          test -d gamedata/dink/Story
+          echo "data OK: $(du -sh gamedata | cut -f1)"
