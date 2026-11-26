@@ -16,7 +16,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential autoconf automake gettext autopoint pkg-config \
             libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libsdl2-gfx-dev \
-            libfontconfig1-dev libfreetype-dev zlib1g-dev cxxtest
+            libfontconfig1-dev libfreetype-dev zlib1g-dev cxxtest libglm-dev
           # modern SDL2_gfx renamed the header; engine expects the old name
           test -f /usr/include/SDL2/SDL_framerate.h || \
             sudo ln -s SDL2_framerate.h /usr/include/SDL2/SDL_framerate.h
