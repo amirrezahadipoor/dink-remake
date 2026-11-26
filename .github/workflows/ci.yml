@@ -21,6 +21,14 @@ jobs:
           test -f /usr/include/SDL2/SDL_framerate.h || \
             sudo ln -s SDL2_framerate.h /usr/include/SDL2/SDL_framerate.h
 
+      - name: Fix autotools timestamps (git does not preserve mtimes)
+        working-directory: engine
+        run: |
+          touch configure.ac autotools/* m4/*.m4 2>/dev/null || true
+          sleep 1; touch aclocal.m4
+          sleep 1; touch configure config.h.in
+          sleep 1; find . -name 'Makefile.in' -exec touch {} +
+
       - name: Configure
         working-directory: engine
         env:
