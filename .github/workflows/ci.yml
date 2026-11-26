@@ -100,3 +100,6 @@ jobs:
           test -d gamedata/dink/graphics
           test -d gamedata/dink/Story
           echo "data OK: $(du -sh gamedata | cut -f1)"
+
+      - name: ffextract roundtrip selftest (all 142 archives)
+        run: python3 tools/ffextract.py selftest gamedata/dink/graphics

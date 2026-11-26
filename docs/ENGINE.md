@@ -1,0 +1,59 @@
+# 🔩 معماری موتور FreeDink 109.6 (مرجع فنی پروژه)
+
+> منبع: مطالعه مستقیم سورس `engine/src/` — این سند مرجع فازهای ۲ تا ۵ است.
+
+## ۱. نقطه ورود و چرخه عمر
+- `main()` → `AppFreeDink` (در `AppFreeDink.cpp`، وارث `app.cpp`)
+- `app.cpp`: پارس آرگومان‌ها (`--refdir`, `--window`, `--debug`, `--software`, `--truecolor`, `--version`)، init کردن SDL، ساخت نمایشگر، سپس حلقه اصلی
+- حلقه اصلی هر فریم `update_frame.cpp::updateFrame()` را صدا می‌زند: پردازش ورودی → اجرای مغزهای اسپرایت‌ها (brains) → اسکریپت‌ها → رندر
+- خروج/pause: رویدادهای SDL در `input.cpp` (نکته اندروید: هوک‌های lifecycle باید در فاز ۳ اینجا وصل شوند)
+
+## ۲. پشته گرافیک (دو رندرر!)
+| کلاس | فایل | توضیح |
+|---|---|---|
+| `IOGfxDisplaySW` | `IOGfxDisplaySW.cpp` | رندر نرم‌افزاری کلاسیک (blit روی سرفیس) |
+| `IOGfxDisplayGL2` | `IOGfxDisplayGL2.cpp` | رندر **OpenGL ES 2** با شیدر (از `glm` استفاده می‌کند) — پایه فاز ۴-۳ ما برای ۶۰fps اندروید |
+- `ImageLoader.cpp`: لود BMP (از فایل آزاد یا از داخل fastfile) + پالت ۸بیتی
+- `gfx_sprites.cpp`: جدول سراسری اسپرایت‌ها؛ `dink.ini` در دیتا تعریف seq/frame هاست
+- `gfx_fonts.cpp`: رندر متن با **SDL2_ttf + fontconfig** — نقطه ورود فارسی‌سازی فاز ۲-۲ (اینجا باید شکل‌دهی RTL اضافه شود). فونت پیش‌فرض: LiberationSans (داخل `share/`)
+- `BgTilesetsManager.cpp`: ۴۱ تایل‌ست پس‌زمینه (`Tiles/Ts*.bmp`)
+
+## ۳. فرمت آرشیو `dir.ff` (FastFile) — از `fastfile.cpp`
+```
+uint32 LE  N (تعداد ورودی)
+N × { uint32 LE offset;  char name[13];  /* nul-terminated */ }
+داده‌ها پشت‌سرهم؛ طول ورودی i = offset(i+1) − offset(i)
+ورودی آخر sentinel است (اشاره به EOF)
+```
+- خواندن با `mmap` در یونیکس (سریع) یا stdio
+- ابزار ما: `tools/ffextract.py` (list/extract/pack/selftest) — رفت‌وبرگشت تست‌شده روی هر ۱۴۲ آرشیو (۱۴۱ بایت‌به‌بایت یکسان، ۱۰۰٪ محتوا یکسان؛ تنها `inter/Text-box/dir.ff` چیدمان جدولش غیرمتعارف است)
+
+## ۴. مفسر DinkC
+- `dinkc.cpp`: پارسر/مفسر اسکریپت‌های `Story/*.c` — بدون کامپایل، در لحظه
+- `dinkc_bindings.cpp`: ~۲۰۰ تابع built-in (مثل `create_sprite`, `say_xy`, `playmidi`, `set_mode`)
+- `dinkc_console.cpp`: کنسول دیباگ داخل بازی (کلید `~` در حالت debug — برای تست فاز ۵ طلاست)
+- الگوی مهم: هر اسپرایت می‌تواند اسکریپت داشته باشد با callbacks: `main/click/touch/talk/hit/die/buttonon/buttonoff`
+- **برای ریمیک:** API جدید `journal_add()` و امثالش باید در `dinkc_bindings.cpp` ثبت شوند (فاز ۲-۷)
+
+## ۵. دنیا و نقشه
+- `DMod.cpp` + `EditorMap.cpp`: لود `dink.dat` (ایندکس) و `Map.dat` (۷۶۸ صفحه × هر صفحه ۱۲×۸ تایل + لیست اسپرایت)
+- `hardness_tiles.cpp` + `Hard.dat`: برخورد
+- `live_screen.cpp` / `live_sprites_manager.cpp` / `live_sprite.cpp`: وضعیت زنده صفحه فعلی
+- `brain.cpp` + `brains/`(داخل update): هوش‌های آماده (brain 1=دینک، 9=دشمن زمینی، ...)
+
+## ۶. صدا
+- `sfx.cpp`: SDL2_mixer؛ `load_sound`/`playsound` از DinkC
+- `bgm.cpp`: موسیقی midi/ogg؛ `playmidi("1003.mid")` → اگر فایل `1003.ogg` باشد همان را می‌زند (کلید فاز ۴-۲: جایگزینی midi با ogg بدون دست زدن به اسکریپت‌ها)
+
+## ۷. مسیرها و D-Mod (کلید ریمیک!)
+- `paths.cpp`: `--refdir` ریشه دیتا (شامل `dink/`)؛ `--game <dir>` یک D-Mod را لود می‌کند که **روی دیتای پایه سوار می‌شود**: هر فایلی که در D-Mod باشد جایگزین نسخه پایه می‌شود (fallback به `dink/`)
+- یعنی ریمیک «آخرین خوک‌چران» = پوشه `pigkeeper/` با Story/نقشه/گرافیک خودش، بدون کپی کردن کل دیتا — دقیقاً معماری‌ای که برای حجم کم APK لازم داریم
+
+## ۸. تست‌های موجود
+- `test_*.cpp` + `Test*.cxx` (cxxtest): دینک‌سی، فونت‌ها، نقشه، یکپارچگی — در CI کامپایل می‌شوند (فاز بعدی: اجرایشان در جاب جدا)
+- `FakeIOGfxDisplay` برای تست بدون گرافیک واقعی
+
+## ۹. نکات اندروید (برای فاز ۳)
+- `SDL_android_main.c` موجود است؛ `IOTouchDragAnywhere.cpp` مکانیک «درگ از هر جای صفحه» برای لمس دارد — پایه خوب کنترل لمسی v1
+- `app.cpp` هینت‌های لمس/ماوس را ست می‌کند (پچ ما برای SDL ≥ 2.0.10 اعمال شد)
+- رندرر GL2 همان مسیر OpenGL ES موبایل است؛ روی اندروید باید پیش‌فرض شود
