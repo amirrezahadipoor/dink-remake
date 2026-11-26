@@ -34,15 +34,15 @@
 - [x] ۰-۶. `git init` + `.gitignore` (gamedata و باینری‌ها خارج از گیت) + `fetch-data.sh` + اولین کامیت
 - [x] ۰-۷. ساخت ریپوی گیت‌هاب با توکن کاربر + پوش اولیه → `github.com/amirrezahadipoor/dink-remake`
 - [x] ۰-۸. ورک‌فلو `ci.yml`: بیلد موتور روی ubuntu-latest + **اولین تیک سبز Actions** 🟢 (ران #۸ — پس از ۴ فیکس واقعی: fontconfig/cxxtest، شیم SDL_framerate.h، mtimeهای autotools، بازگرداندن nsis)
-- [ ] ۰-۹. فایل `INVENTORY.md`: فهرست دقیق اسِت‌ها (۱۴۲ آرشیو ff، ۱۲۲ BMP آزاد، ۲۲ wav، ۵ ogg، ۱۲ midi) با لایسنس هرکدام
+- [x] ۰-۹. فایل `INVENTORY.md`: فهرست دقیق اسِت‌ها (۱۴۲ آرشیو ff، ۱۲۲+۵۸ BMP، ۲۲ wav، ۵ ogg، ۱۲ midi، ۳۸۱ اسکریپت DinkC) با لایسنس‌ها ✅
 
 ## فاز ۱ — احیای موتور و تسلط بر آن (همه بیلدها روی GitHub Actions)
 > هدف: قبل از دست زدن به اندروید، باید موتور را کامل بشناسیم و «سبز» نگهش داریم. این پایه‌ی همه چیز است.
 
 - [x] ۱-۱. ورک‌فلو کامل لینوکس: نصب وابستگی‌ها + کامپایل + آپلود باینری `freedink-linux` به‌عنوان Artifact ✅ + **دو پچ اول مدرن‌سازی موتور**: const-صحیح کردن API فونت SDL2_ttf و جایگزینی هینت لمسی حذف‌شده اندروید (SDL ≥ 2.0.10)
 - [x] ۱-۲. جاب `data-check`: اجرای `fetch-data.sh` در CI و تأیید سلامت دیتا (Map.dat/Hard.dat/graphics/Story) ✅
-- [ ] ۱-۳. جاب smoke-test هدلس (SDL dummy driver): موتور تا منوی اصلی بالا بیاید + اسکرین‌شات فشرده به‌عنوان Artifact
-- [ ] ۱-۴. تست لود کامل `gamedata/dink` در CI (بدون کرش تا شروع بازی)
+- [x] ۱-۳. جاب smoke-test هدلس (Xvfb + صدای dummy): موتور تا منوی اصلی بالا می‌آید + اسکرین‌شات فشرده WebP به‌عنوان Artifact ✅ (اثبات: `docs/proof/smoke_title.webp` — منو با ۶۷ FPS)
+- [x] ۱-۴. تست لود کامل `gamedata/dink` در CI تا **داخل گیم‌پلی** ✅ — از طریق اسکریپت DinkC خودکارساز (`tools/ci/autostart-patch.sh`) + تأیید `CI_AUTOSTART_OK` در لاگ (اثبات: `docs/proof/smoke_ingame.webp` — خانه دینک، HUD کامل، ۱۸ اسپرایت، ۶۲ FPS)
 - [ ] ۱-۵. مستندسازی معماری موتور (`docs/ENGINE.md` — استثنای مجاز بر قانون تک‌فایل، چون سند فنی است نه نقشه راه): حلقه بازی، فرمت ff، DinkC، سیستم sprite
 - [ ] ۱-۶. ابزار `tools/ffextract.py` برای باز/بستن آرشیوهای `dir.ff` + تست واحد آن در CI
 - [ ] ۱-۷. تست رفت‌وبرگشت در CI: استخراج آرشیو، بسته‌بندی مجدد، مقایسه بایت‌به‌بایت — بدون خرابی
