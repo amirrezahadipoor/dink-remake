@@ -91,7 +91,14 @@ void input_init(void)
 
   // TODO: don't attempt to simulate mouse events from touch events -
   // fake mouse events often are de-centered
+#ifdef SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH
+  /* SDL < 2.0.10 */
   SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "0");
+#else
+  /* SDL >= 2.0.10: "0" above meant touch also drives the mouse */
+  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "1");
+  SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+#endif
 
   /* Touch devices */
   {
