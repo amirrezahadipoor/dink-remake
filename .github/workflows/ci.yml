@@ -60,14 +60,16 @@ jobs:
           sleep 20
           import -window root shot_title.png || true
           ALIVE_TITLE=ok; kill -0 $PID 2>/dev/null || ALIVE_TITLE=dead
-          # click "Start" (640x480 window centered on 1280x720 -> Start label ~ (345,160))
-          xdotool mousemove 345 160 click 1 || true
-          sleep 8
-          # skip possible intro with ESC/Return
+          # engine uses SDL relative-warp mouse: absolute coords don't work.
+          # steer in-game pointer (starts centered at 320,240) onto "Start" (~60,45) via relative moves
+          xdotool mousemove 640 360 || true
+          sleep 1
+          xdotool mousemove_relative -- -260 -195 || true
+          sleep 1
+          xdotool click 1 || true
+          sleep 10
           xdotool key Return || true
-          sleep 4
-          xdotool key Escape || true
-          sleep 4
+          sleep 5
           import -window root shot_after.png || true
           ALIVE_AFTER=ok; kill -0 $PID 2>/dev/null || ALIVE_AFTER=dead
           kill $PID 2>/dev/null || true
