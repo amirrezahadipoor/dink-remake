@@ -74,10 +74,10 @@ def wood(t):
 def main(outdir):
     # چیدمان گرید 32xN: خانه (2) شمالِ مزرعه (34)؛ میدان (35) شرق مزرعه
     farm_sprites = [
-        # درخت‌های قاب صحنه (seq 142 از Dink.ini: lands/trees)
-        sprite_record(x=120, y=160, seq=142, frame=3, active=1, hard=1),
-        sprite_record(x=560, y=150, seq=142, frame=5, active=1, hard=1),
-        sprite_record(x=90,  y=380, seq=142, frame=1, active=1, hard=1),
+        # درخت‌های قاب صحنه (seq 32 از Dink.ini: lands/trees)
+        sprite_record(x=120, y=160, seq=32, frame=3, active=1, hard=1),
+        sprite_record(x=560, y=150, seq=32, frame=5, active=1, hard=1),
+        sprite_record(x=90,  y=380, seq=32, frame=1, active=1, hard=1),
     ]
     screens = [
         make_screen('s1house', wood),                       # 1: خانه (indoor)
