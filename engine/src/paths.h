@@ -40,6 +40,7 @@ extern FILE* paths_fallbackfile_fopen(const char* file, const char* mode);
 extern FILE* paths_pkgdatafile_fopen(const char* file, const char* mode);
 
 extern FILE* paths_savegame_fopen(int num, const char* mode);
+extern char* paths_sidefile_path(const char* file); /* remake */
 extern void paths_quit(void);
 
 extern void ts_paths_init();

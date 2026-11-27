@@ -54,6 +54,7 @@ jobs:
           sh tools/ci/autostart-patch.sh
           export SDL_AUDIODRIVER=dummy
           export FREEDINK_FONT="$PWD/fonts/Vazirmatn-Regular.ttf"
+          export FREEDINK_AUTOSAVE=8
           Xvfb :99 -screen 0 1280x720x24 &
           export DISPLAY=:99
           sleep 2
@@ -78,6 +79,21 @@ jobs:
           grep -q "CI_AUTOSTART_OK" freedink.log
           grep -q "CI_PERSIAN_SAY" freedink.log
           grep -q "FREEDINK_FONT" freedink.log
+          # --- 2-6 / 2-7: atomic save, journal, autosave ---
+          grep -q "CI_SAVED_7" freedink.log
+          grep -q "SAVE_ATOMIC_OK: slot 7" freedink.log
+          grep -q "JOURNAL_ADD" freedink.log
+          grep -q "JOURNAL_DONE" freedink.log
+          grep -q "JOURNAL_SAVED: slot 7 (2 quests)" freedink.log
+          grep -q "AUTOSAVE_OK: slot 9" freedink.log
+          SAVE7=$(find ~/.dink -name 'save7.dat' | head -1); test -n "$SAVE7"
+          test ! -f "$SAVE7.tmp"
+          J7=$(find ~/.dink -name 'journal7.txt' | head -1); test -n "$J7"
+          grep -q "پیدا کردن تیلی" "$J7"
+          grep -q "^1|" "$J7"
+          grep -q "^0|" "$J7"
+          find ~/.dink -name 'save9.dat' | grep -q .
+          echo "save/journal/autosave checks passed ✓"
 
       - name: Remake boot test (pigkeeper D-Mod, Persian title)
         run: |

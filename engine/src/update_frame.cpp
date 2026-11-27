@@ -41,6 +41,7 @@
 #include "DMod.h"
 #include "editor_screen.h"
 #include "live_screen.h"
+#include <stdlib.h> /* remake: getenv/atoi for autosave */
 #include "live_sprite.h"
 #include "freedink.h"
 #include "brains.h"
@@ -203,8 +204,30 @@ void check_joystick()
     }
 }
 
+/* Remake (2-6): periodic autosave to slot 9. Interval in seconds via
+   FREEDINK_AUTOSAVE (default 180, 0 disables). Only while playing. */
+extern void save_game(int num);
+static void remake_autosave() {
+	static int interval = -2;
+	static Uint32 last = 0;
+	if (interval == -2) {
+		const char* e = getenv("FREEDINK_AUTOSAVE");
+		interval = (e != NULL) ? atoi(e) : 180;
+		last = SDL_GetTicks();
+	}
+	if (interval <= 0 || mode < 2)
+		return;
+	Uint32 now = SDL_GetTicks();
+	if (now - last >= (Uint32)interval * 1000) {
+		last = now;
+		save_game(9);
+		log_info("AUTOSAVE_OK: slot 9");
+	}
+}
+
 void updateFrame() {
 	check_joystick();
+	remake_autosave();
 	
 	int move_result ;
     

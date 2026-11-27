@@ -441,6 +441,26 @@ FILE* paths_pkgdatafile_fopen(const char *file, const char *mode)
   return result;
 }
 
+/**
+ * Remake: build the full path of a per-savegame side file (e.g.
+ * "save7.dat", "save7.dat.tmp", "journal7.txt") inside
+ * userappdir/dmodname, creating directories as needed.
+ * Caller must free() the result.
+ */
+char *paths_sidefile_path(const char *file)
+{
+  char *savedir = (char*)malloc(strlen(userappdir) + 1 + strlen(dmodname) + 1);
+  strcpy(savedir, userappdir);
+  strcat(savedir, "/");
+  strcat(savedir, dmodname);
+  if (!is_directory(userappdir)) mkdir(userappdir, 0777);
+  if (!is_directory(savedir))    mkdir(savedir, 0777);
+  char *fullpath = br_build_path(savedir, file);
+  ciconvert(fullpath);
+  free(savedir);
+  return fullpath;
+}
+
 FILE *paths_savegame_fopen(int num, const char *mode)
 {
   char *fullpath_in_dmoddir = NULL;

@@ -842,6 +842,8 @@ void set_keep_mouse(int on) {
 }
 
 
+extern void journal_reset(); /* remake: quest journal (dinkc_bindings.cpp) */
+
 void game_init(int version)
 {
   dversion = version;
@@ -850,6 +852,7 @@ void game_init(int version)
      errors properly instead of using this dirty trick. */
   memset(&play, 0, sizeof(play));
   live_sprites_manager_init();
+  journal_reset(); /* remake: fresh quest journal on new game */
 
   gfx_sprites_loading_listener = draw_wait;
   

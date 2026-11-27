@@ -26,7 +26,15 @@ int &crap;
  &cur_weapon = 1;
  arm_weapon();
  debug("CI_AUTOSTART_OK");
- wait(2000);
+ wait(1000);
+ journal_add("پیدا کردن تیلی");
+ journal_add("بازسازی خانه");
+ journal_done("پیدا کردن تیلی");
+ journal_say();
+ wait(500);
+ save_game(7);
+ debug("CI_SAVED_7");
+ wait(500);
  debug("CI_PERSIAN_SAY");
  &crap = 0;
 loop:

@@ -1318,6 +1318,107 @@ void dc_save_game(int script, int* yield, int* preturnint, int game_slot)
   save_game(game_slot);
 }
 
+/* ------------------------------------------------------------------ */
+/* Remake (2-7): quest journal — DinkC API + per-slot persistence.     */
+/* Stored as a UTF-8 sidecar ("journal<slot>.txt") next to the save,  */
+/* keeping the classic binary save format 100% compatible.            */
+/* ------------------------------------------------------------------ */
+#include <vector>
+#include <string>
+struct JournalEntry { std::string title; int done; };
+static std::vector<JournalEntry> g_journal;
+
+static JournalEntry* journal_find(const char* title) {
+  for (unsigned i = 0; i < g_journal.size(); i++)
+    if (g_journal[i].title == title)
+      return &g_journal[i];
+  return NULL;
+}
+
+void journal_reset() { g_journal.clear(); }
+
+void journal_write_slot(int num) {
+  char fname[32];
+  sprintf(fname, "journal%d.txt", num);
+  char* path = paths_sidefile_path(fname);
+  FILE* f = fopen(path, "wb");
+  if (f != NULL) {
+    fprintf(f, "JRNL1\n");
+    for (unsigned i = 0; i < g_journal.size(); i++)
+      fprintf(f, "%d|%s\n", g_journal[i].done, g_journal[i].title.c_str());
+    fclose(f);
+    log_info("JOURNAL_SAVED: slot %d (%d quests)", num, (int)g_journal.size());
+  }
+  free(path);
+}
+
+void journal_read_slot(int num) {
+  char fname[32];
+  sprintf(fname, "journal%d.txt", num);
+  char* path = paths_sidefile_path(fname);
+  FILE* f = fopen(path, "rb");
+  g_journal.clear();
+  if (f != NULL) {
+    char line[512];
+    if (fgets(line, sizeof(line), f) != NULL && strncmp(line, "JRNL1", 5) == 0) {
+      while (fgets(line, sizeof(line), f) != NULL) {
+        char* nl = strchr(line, '\n'); if (nl) *nl = '\0';
+        char* sep = strchr(line, '|');
+        if (sep == NULL || sep == line) continue;
+        JournalEntry e; e.done = atoi(line); e.title = sep + 1;
+        if (!e.title.empty()) g_journal.push_back(e);
+      }
+    }
+    fclose(f);
+    log_info("JOURNAL_LOADED: slot %d (%d quests)", num, (int)g_journal.size());
+  }
+  free(path);
+}
+
+void dc_journal_add(int script, int* yield, int* preturnint, char* title)
+{
+  char* buf = latin1_to_utf8(title);
+  if (journal_find(buf) == NULL) {
+    JournalEntry e; e.title = buf; e.done = 0;
+    g_journal.push_back(e);
+    log_info("JOURNAL_ADD: %s", buf);
+  }
+  free(buf);
+  *preturnint = (int)g_journal.size();
+}
+
+void dc_journal_done(int script, int* yield, int* preturnint, char* title)
+{
+  char* buf = latin1_to_utf8(title);
+  JournalEntry* e = journal_find(buf);
+  *preturnint = 0;
+  if (e != NULL && !e->done) {
+    e->done = 1;
+    log_info("JOURNAL_DONE: %s", buf);
+    *preturnint = 1;
+  }
+  free(buf);
+}
+
+void dc_journal_say(int script, int* yield, int* preturnint)
+{
+  std::string out = "`%دفترچه مأموریت‌ها:";
+  int shown = 0;
+  for (unsigned i = 0; i < g_journal.size() && shown < 8; i++) {
+    out += "\n";
+    out += (g_journal[i].done ? "+ " : "- ");
+    out += g_journal[i].title;
+    shown++;
+  }
+  if (g_journal.empty())
+    out += "\n(خالی)";
+  char* text = strdup(out.c_str());
+  int tsprite = say_text_xy(text, 40, 60, script);
+  *preturnint = tsprite;
+  free(text);
+}
+/* ------------------------------------------------------------------ */
+
 void dc_force_vision(int script, int* yield, int* preturnint, int vision)
 {
   *pvision = vision;
@@ -2183,6 +2284,10 @@ void dinkc_bindings_init()
   DCBD_ADD(sound_set_kill,       {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
 
   DCBD_ADD(save_game,                 {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  /* Remake (2-7): quest journal API */
+  DCBD_ADD(journal_add,               {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(journal_done,              {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(journal_say,              {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(force_vision,              {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(fill_screen,               {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(load_game,                 {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);

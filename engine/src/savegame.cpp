@@ -81,6 +81,10 @@
 }
 
 
+/* Remake: quest journal (implemented in dinkc_bindings.cpp) */
+extern void journal_write_slot(int num);
+extern void journal_read_slot(int num);
+
 /*bool*/int load_game(int num)
 {
   char skipbuf[10000]; // more than any fseek we do
@@ -340,7 +344,10 @@
   log_info("Map drawn.");
   
   last_saved_game = num;
-  
+
+  /* Remake (2-7): restore the quest journal for this slot */
+  journal_read_slot(num);
+
   return /*true*/1;
 }
 
@@ -360,10 +367,21 @@ void save_game(int num)
   time(&time_start);
 
   last_saved_game = num;
-  f = paths_savegame_fopen(num, "wb");
+
+  /* Remake (2-6): atomic save — write to a temp file, then rename.
+     A crash/power-loss mid-save can no longer corrupt the slot. */
+  char tmpname[4 + 20 + 4 + 4 + 1];
+  char finalname[4 + 20 + 4 + 1];
+  sprintf(finalname, "save%d.dat", num);
+  sprintf(tmpname, "save%d.dat.tmp", num);
+  char* path_tmp = paths_sidefile_path(tmpname);
+  char* path_final = paths_sidefile_path(finalname);
+  f = fopen(path_tmp, "wb");
   if (f == NULL)
     {
       perror("Cannot save game");
+      free(path_tmp);
+      free(path_final);
       return;
     }
 
@@ -488,6 +506,15 @@ void save_game(int num)
   fwrite(skipbuf, 750, 1, f);
 
   fclose(f);
+
+  /* Remake (2-6): commit the atomic save + persist the quest journal */
+  if (rename(path_tmp, path_final) != 0)
+    perror("Cannot commit save game");
+  else
+    log_info("SAVE_ATOMIC_OK: slot %d", num);
+  free(path_tmp);
+  free(path_final);
+  journal_write_slot(num);
 
 #ifdef __EMSCRIPTEN__
   // Flush changes to IDBFS
