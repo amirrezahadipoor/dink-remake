@@ -10,6 +10,11 @@
 #include "dinkc.h"
 #include "sfx.h"
 
+/* Remake (M5): registered in dinkc_bindings.cpp */
+struct RemakeBtn { int x1,y1,x2,y2; char script[14]; int active; };
+extern RemakeBtn remake_btns[8];
+
+
 void run_through_mouse_list(int h, /*bool*/int special)
 {
   rect box;
@@ -76,10 +81,6 @@ void run_through_mouse_list(int h, /*bool*/int special)
 	if (special) 		SoundPlayEffect(19, 22050, 0, 0,0);
 	
 }
-
-/* Remake (M5): registered in dinkc_bindings.cpp */
-struct RemakeBtn { int x1,y1,x2,y2; char script[14]; int active; };
-extern RemakeBtn remake_btns[8];
 
 void mouse_brain(int h)
 {
