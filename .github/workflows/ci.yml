@@ -173,6 +173,15 @@ jobs:
           grep -q "CI_TELEPORT_MILO" pigkeeper.log
           grep -q "CH6_MINE2_OK" pigkeeper.log
           grep -q "CH6_MILO_HERE" pigkeeper.log
+          grep -q "CI_TELEPORT_DOCK" pigkeeper.log
+          grep -q "CH7_DOCK_OK" pigkeeper.log
+          grep -q "CH7_RAUF_HERE" pigkeeper.log
+          grep -q "CI_TELEPORT_GRIVN" pigkeeper.log
+          grep -q "CH8_GRIVN_OK" pigkeeper.log
+          grep -q "CH8_HOLLOW_FOLK" pigkeeper.log
+          grep -q "CI_TELEPORT_CHURCH" pigkeeper.log
+          grep -q "CH8_CHURCH_OK" pigkeeper.log
+          grep -q "CH8_BOOK_FOUND" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
           echo "::group::NOTANIM diag"; grep -aiE "seq|\.ff|couldn|miss" pigkeeper.log | head -20; echo "::endgroup::"
