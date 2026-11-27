@@ -155,6 +155,10 @@ jobs:
           # فصل ۱ روی نقشه خودِ ریمیک
           grep -q "MAKE_BUTTON btnstart" pigkeeper.log
           grep -q "CH1_FARM_OK" pigkeeper.log
+          grep -q "CI_TELEPORT_FOREST" pigkeeper.log
+          grep -q "CH2_FOREST_OK" pigkeeper.log
+          grep -q "CH2_MERCS_SPAWNED" pigkeeper.log
+          grep -q "CH2_MERC_READY" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
           echo "::group::NOTANIM diag"; grep -aiE "seq|\.ff|couldn|miss" pigkeeper.log | head -20; echo "::endgroup::"

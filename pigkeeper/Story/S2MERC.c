@@ -1,0 +1,42 @@
+//مزدور فرقه — آمار از pigkeeper/data/enemies.md (B1)
+void main( void )
+{
+sp_brain(&current_sprite, 9);
+sp_speed(&current_sprite, 1);
+sp_timing(&current_sprite, 33);
+sp_base_walk(&current_sprite, 130);
+sp_base_death(&current_sprite, 140);
+sp_hitpoints(&current_sprite, 22);
+sp_defense(&current_sprite, 1);
+sp_strength(&current_sprite, 5);
+sp_touch_damage(&current_sprite, 5);
+sp_exp(&current_sprite, 18);
+preload_seq(131);
+preload_seq(133);
+preload_seq(141);
+preload_seq(143);
+sp_target(&current_sprite, 1);
+debug("CH2_MERC_READY");
+}
+
+void hit( void )
+{
+sp_target(&current_sprite, &enemy_sprite);
+playsound(30, 21050, 4000, &current_sprite, 0);
+}
+
+void die( void )
+{
+int &left;
+&left = flag_get("ch2_kills");
+&left += 1;
+flag_set("ch2_kills", &left);
+debug("CH2_MERC_DOWN");
+if (&left == 2)
+{
+ flag_set("ch2_f1_clear", 1);
+ journal_add("از جنگل غرب عبور کن");
+ say_xy("`%دینک: این‌ها دیگه کی بودن؟! ...باید ادامه بدم.", 100, 60);
+ achieve("اولین نبرد");
+}
+}

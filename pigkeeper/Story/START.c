@@ -80,9 +80,17 @@ sayloop:
 say_xy("`%اینجا پاین‌هالو است، خانه‌ی دینک", 170, 150);
 wait(1500);
 &i += 1;
-if (&i < 12)
+if (&i < 6)
 {
  goto sayloop;
 }
+//دموی CI: پرش به جنگل برای تست مبارزه فصل ۲ (بازیکن واقعی پیاده می‌رود)
+flag_set("ch1_letter", 1);
+&player_map = 33;
+sp_x(1, 320);
+sp_y(1, 240);
+load_screen();
+draw_screen();
+debug("CI_TELEPORT_FOREST");
 kill_this_task();
 }

@@ -80,8 +80,11 @@ def main(outdir):
         make_screen('s1house', wood),                       # 1: خانه (indoor)
         make_screen('s1farm',  grass, farm_sprites),        # 2: مزرعه
         make_screen('s1squar', grass_with_path),            # 3: میدان
+        make_screen('s2fore1', grass),                      # 4: جنگل غرب ۱
+        make_screen('s2fore2', grass),                      # 5: جنگل غرب ۲ (مارا)
     ]
     idx_house, idx_farm, idx_square = 2, 34, 35
+    idx_f1, idx_f2 = 33, 32
     with open(os.path.join(outdir, 'map.dat'), 'wb') as f:
         for s in screens:
             f.write(s)
@@ -91,6 +94,8 @@ def main(outdir):
     loc[idx_house] = 1
     loc[idx_farm] = 2
     loc[idx_square] = 3
+    loc[idx_f1] = 4
+    loc[idx_f2] = 5
     indoor[idx_house] = 1
     with open(os.path.join(outdir, 'dink.dat'), 'wb') as f:
         name = b'Pigkeeper'
