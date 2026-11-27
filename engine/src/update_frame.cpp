@@ -389,27 +389,58 @@ static void remake_touch_apply() {
 }
 
 /* HUD labels for the touch zones, drawn right before flip (Persian,
-   dialog font => shaped + anti-aliased). Called from AppFreeDink. */
-void remake_touch_overlay_render() {
-	if (!g_touch.on || mode < 2)
-		return;
-	struct { const char* txt; int x; int y; } L[] = {
+   dialog font => shaped + anti-aliased). Called from AppFreeDink.
+   Perf: labels are rendered ONCE into cached GPU surfaces and only
+   re-blitted each frame (previously: 5 TTF renders + texture
+   uploads + frees per frame — the worst GL pattern possible). */
+#define RTOUCH_NLABELS 6
+static IOGfxSurface* s_lbl_surf[RTOUCH_NLABELS];
+static SDL_Rect s_lbl_rel[RTOUCH_NLABELS];
+static int s_lbl_built = 0;
+
+static void remake_touch_overlay_build() {
+	struct { const char* txt; int x; int y; } L[RTOUCH_NLABELS] = {
 		{"حمله", 560, 362}, {"جادو", 461, 410}, {"گفتگو", 461, 276},
-		{"آیتم", 368, 343}, {"منو", 611, 17},
+		{"آیتم", 368, 343}, {"منو", 611, 17}, {"+", 0, 0},
 	};
 	FONTS_SetTextColor(235, 235, 235);
-	for (unsigned i = 0; i < sizeof(L)/sizeof(L[0]); i++) {
+	for (int i = 0; i < RTOUCH_NLABELS; i++) {
 		std::vector<TextCommand> cmds;
 		rect r = {L[i].x - 70, L[i].y, L[i].x + 70, L[i].y + 30};
 		print_text_wrap_getcmds((char*)L[i].txt, &r, 1, 0, FONT_DIALOG, &cmds);
-		print_text_cmds(&cmds);
+		s_lbl_surf[i] = print_text_flatten_cmds(&cmds);
+		if (s_lbl_surf[i] != NULL && !cmds.empty())
+			s_lbl_rel[i] = cmds[0].dst;
 	}
-	if (g_touch.jdown) {
-		std::vector<TextCommand> cmds;
+	s_lbl_built = 1;
+	log_info("PERF touch overlay cached (%d labels)", RTOUCH_NLABELS);
+}
+
+void remake_touch_overlay_render() {
+	if (!g_touch.on || mode < 2)
+		return;
+	if (!s_lbl_built)
+		remake_touch_overlay_build();
+	for (int i = 0; i < RTOUCH_NLABELS - 1; i++)
+		if (s_lbl_surf[i] != NULL)
+			print_text_cache(s_lbl_surf[i], s_lbl_rel[i], 0, 0);
+	if (g_touch.jdown && s_lbl_surf[RTOUCH_NLABELS-1] != NULL) {
+		/* joystick origin marker follows the finger: blit cached '+' */
 		int jx = (int)(g_touch.jx * 640), jy = (int)(g_touch.jy * 480);
-		rect r = {jx - 20, jy - 10, jx + 20, jy + 20};
-		print_text_wrap_getcmds((char*)"+", &r, 1, 0, FONT_DIALOG, &cmds);
-		print_text_cmds(&cmds);
+		print_text_cache(s_lbl_surf[RTOUCH_NLABELS-1],
+		                 s_lbl_rel[RTOUCH_NLABELS-1], jx, jy);
+	}
+}
+
+/* Remake (perf): lightweight FPS telemetry — one log line / 5s */
+static void remake_perf_tick() {
+	static Uint32 win_start = 0; static int frames = 0;
+	frames++;
+	Uint32 now = SDL_GetTicks();
+	if (win_start == 0) { win_start = now; return; }
+	if (now - win_start >= 5000) {
+		log_info("PERF fps=%d", frames * 1000 / (now - win_start));
+		win_start = now; frames = 0;
 	}
 }
 
@@ -417,6 +448,7 @@ void updateFrame() {
 	check_joystick();
 	remake_autosave();
 	remake_clock_and_night();
+	remake_perf_tick();
 	
 	int move_result ;
     

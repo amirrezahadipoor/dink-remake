@@ -197,8 +197,11 @@ void IOGfxDisplaySW::flip(IOGfxSurface* backbuffer, SDL_Rect* dstrect,
 	/* Convert to destination buffer format */
 	SDL_Surface* source = dynamic_cast<IOGfxSurfaceSW*>(backbuffer)->image;
 
+	/* Remake (perf): brightness/night-dim via GPU texture color-mod
+	   instead of a 920K-pixel CPU loop per frame (gfx_fade_apply). */
+	Uint8 cmod = 255;
 	if (truecolor && brightness < 256)
-		gfx_fade_apply(source, brightness);
+		cmod = (Uint8)((brightness * 255) / 256);
 
 	if (truecolor) {
 		if (source->format->format != getFormat())
@@ -223,9 +226,11 @@ void IOGfxDisplaySW::flip(IOGfxSurface* backbuffer, SDL_Rect* dstrect,
 
 	if (interpolation) {
 		SDL_UpdateTexture(render_texture_linear, NULL, source->pixels, source->pitch);
+		SDL_SetTextureColorMod(render_texture_linear, cmod, cmod, cmod);
 		SDL_RenderCopy(renderer, render_texture_linear, NULL, dstrect);
 	} else {
 		SDL_UpdateTexture(render_texture_nearest, NULL, source->pixels, source->pitch);
+		SDL_SetTextureColorMod(render_texture_nearest, cmod, cmod, cmod);
 		SDL_RenderCopy(renderer, render_texture_nearest, NULL, dstrect);
 	}
 

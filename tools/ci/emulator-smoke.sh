@@ -64,6 +64,12 @@ grep -aq "TOUCH_CONTROLS_ON" logcat.txt
 grep -aq "TOUCH_STATE mv\[r1" logcat.txt
 grep -aq "TOUCH_TAP" logcat.txt
 
+# perf: گزارش fps روی امولاتور (swiftshader) + کف محافظه‌کارانه
+grep -a "PERF fps=" logcat.txt | tail -3 || true
+FPSV=$(grep -a "PERF fps=" logcat.txt | tail -1 | grep -oE 'fps=[0-9]+' | cut -d= -f2)
+echo "measured fps(emulator): ${FPSV:-none}"
+test -n "$FPSV" && test "$FPSV" -ge 20
+
 APPPID2=$(adb shell pidof ir.pigkeeper.dink | tr -d '\r')
 echo "app pid after soak: $APPPID2"
 test -n "$APPPID2"

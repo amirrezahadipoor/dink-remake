@@ -109,6 +109,12 @@ jobs:
           grep -q "1|fire_witness" "$F7"
           grep -q "2|mayor_mood" "$F7"
           echo "flags/clock/night checks passed ✓"
+          # --- perf: گزارش fps + کف سخت‌گیرانه ---
+          grep -a "PERF fps=" freedink.log | tail -3
+          FPSV=$(grep -a "PERF fps=" freedink.log | tail -1 | grep -oE 'fps=[0-9]+' | cut -d= -f2)
+          echo "measured fps: ${FPSV:-none}"
+          test -n "$FPSV" && test "$FPSV" -ge 30
+          echo "perf floor (>=30fps on CI llvmpipe) passed ✓"
 
       - name: Remake boot test (pigkeeper D-Mod, Persian title)
         run: |
