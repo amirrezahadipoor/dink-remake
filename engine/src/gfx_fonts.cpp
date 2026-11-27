@@ -177,6 +177,21 @@ static TTF_Font *load_default_font() {
   TTF_Font *font_object = NULL;
   SDL_RWops* rwops = NULL;
 
+  /* Remake: allow overriding the default font (e.g. a Persian-capable one)
+     without touching fontconfig — also the mechanism used on Android. */
+  if (rwops == NULL)
+    {
+      const char* envfont = getenv("FREEDINK_FONT");
+      if (envfont != NULL && envfont[0] != '\0')
+        {
+          rwops = SDL_RWFromFile(envfont, "rb");
+          if (rwops != NULL)
+            log_info("Loaded default font from FREEDINK_FONT=%s", envfont);
+          else
+            log_error("FREEDINK_FONT set but unreadable: %s", envfont);
+        }
+    }
+
   /* Try from resources */
   if (rwops == NULL)
     {
@@ -321,6 +336,142 @@ void FONTS_SetTextColor(Uint8 r, Uint8 g, Uint8 b) {
 }
 
 
+/* ------------------------------------------------------------------ */
+/* Remake: dependency-free Persian/Arabic text shaping (phase 2-2).    */
+/* Maps letters to Unicode Presentation Forms (A/B) with correct      */
+/* initial/medial/final/isolated joining, LAM-ALEF ligatures, ZWNJ,   */
+/* then applies a light bidi pass (RTL with LTR digit/latin runs).    */
+/* Requires a font with FB50/FE70 blocks in cmap (e.g. Vazirmatn).    */
+/* ------------------------------------------------------------------ */
+struct ArabForms { Uint32 cp, iso, fin, ini, med; };
+/* ini==0 means right-joining only (never connects to the next letter) */
+static const ArabForms arab_forms[] = {
+  {0x0621,0xFE80,0xFE80,0,0},      {0x0622,0xFE81,0xFE82,0,0},
+  {0x0623,0xFE83,0xFE84,0,0},      {0x0624,0xFE85,0xFE86,0,0},
+  {0x0625,0xFE87,0xFE88,0,0},      {0x0626,0xFE89,0xFE8A,0xFE8B,0xFE8C},
+  {0x0627,0xFE8D,0xFE8E,0,0},      {0x0628,0xFE8F,0xFE90,0xFE91,0xFE92},
+  {0x0629,0xFE93,0xFE94,0,0},      {0x062A,0xFE95,0xFE96,0xFE97,0xFE98},
+  {0x062B,0xFE99,0xFE9A,0xFE9B,0xFE9C}, {0x062C,0xFE9D,0xFE9E,0xFE9F,0xFEA0},
+  {0x062D,0xFEA1,0xFEA2,0xFEA3,0xFEA4}, {0x062E,0xFEA5,0xFEA6,0xFEA7,0xFEA8},
+  {0x062F,0xFEA9,0xFEAA,0,0},      {0x0630,0xFEAB,0xFEAC,0,0},
+  {0x0631,0xFEAD,0xFEAE,0,0},      {0x0632,0xFEAF,0xFEB0,0,0},
+  {0x0633,0xFEB1,0xFEB2,0xFEB3,0xFEB4}, {0x0634,0xFEB5,0xFEB6,0xFEB7,0xFEB8},
+  {0x0635,0xFEB9,0xFEBA,0xFEBB,0xFEBC}, {0x0636,0xFEBD,0xFEBE,0xFEBF,0xFEC0},
+  {0x0637,0xFEC1,0xFEC2,0xFEC3,0xFEC4}, {0x0638,0xFEC5,0xFEC6,0xFEC7,0xFEC8},
+  {0x0639,0xFEC9,0xFECA,0xFECB,0xFECC}, {0x063A,0xFECD,0xFECE,0xFECF,0xFED0},
+  {0x0641,0xFED1,0xFED2,0xFED3,0xFED4}, {0x0642,0xFED5,0xFED6,0xFED7,0xFED8},
+  {0x0643,0xFED9,0xFEDA,0xFEDB,0xFEDC}, {0x0644,0xFEDD,0xFEDE,0xFEDF,0xFEE0},
+  {0x0645,0xFEE1,0xFEE2,0xFEE3,0xFEE4}, {0x0646,0xFEE5,0xFEE6,0xFEE7,0xFEE8},
+  {0x0647,0xFEE9,0xFEEA,0xFEEB,0xFEEC}, {0x0648,0xFEED,0xFEEE,0,0},
+  {0x0649,0xFEEF,0xFEF0,0,0},      {0x064A,0xFEF1,0xFEF2,0xFEF3,0xFEF4},
+  /* Persian letters (Presentation Forms-A) */
+  {0x067E,0xFB56,0xFB57,0xFB58,0xFB59}, /* پ */
+  {0x0686,0xFB7A,0xFB7B,0xFB7C,0xFB7D}, /* چ */
+  {0x0698,0xFB8A,0xFB8B,0,0},           /* ژ */
+  {0x06A9,0xFB8E,0xFB8F,0xFB90,0xFB91}, /* ک */
+  {0x06AF,0xFB92,0xFB93,0xFB94,0xFB95}, /* گ */
+  {0x06CC,0xFBFC,0xFBFD,0xFBFE,0xFBFF}, /* ی */
+  {0x06C0,0xFBA4,0xFBA5,0,0},           /* ۀ */
+};
+#define ZWNJ 0x200C
+
+static const ArabForms* arab_lookup(Uint32 cp) {
+	for (unsigned i = 0; i < sizeof(arab_forms)/sizeof(arab_forms[0]); i++)
+		if (arab_forms[i].cp == cp) return &arab_forms[i];
+	return NULL;
+}
+static int is_ltr_keep(Uint32 c) { /* chars whose run stays left-to-right */
+	return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+	    || (c >= 0x0660 && c <= 0x0669) || (c >= 0x06F0 && c <= 0x06F9);
+}
+static Uint32 mirror_bracket(Uint32 c) {
+	switch (c) { case '(': return ')'; case ')': return '(';
+	case '[': return ']'; case ']': return '[';
+	case '{': return '}'; case '}': return '{';
+	case '<': return '>'; case '>': return '<'; }
+	return c;
+}
+
+/* Returns a freshly malloc'ed shaped UTF-8 string, or NULL if `str`
+   contains no Arabic-script character (caller then uses `str` as-is). */
+static char* shape_rtl_utf8(const char* str) {
+	size_t len = strlen(str);
+	Uint32* cps = (Uint32*)malloc((len + 1) * sizeof(Uint32));
+	size_t n = 0; int has_arabic = 0;
+	/* --- UTF-8 decode (tolerant) --- */
+	for (size_t i = 0; i < len;) {
+		unsigned char c = str[i]; Uint32 cp = 0xFFFD; size_t adv = 1;
+		if (c < 0x80) { cp = c; }
+		else if ((c & 0xE0) == 0xC0 && i+1 < len) { cp = ((c&0x1F)<<6)|(str[i+1]&0x3F); adv = 2; }
+		else if ((c & 0xF0) == 0xE0 && i+2 < len) { cp = ((c&0x0F)<<12)|((str[i+1]&0x3F)<<6)|(str[i+2]&0x3F); adv = 3; }
+		else if ((c & 0xF8) == 0xF0 && i+3 < len) { cp = ((c&0x07)<<18)|((str[i+1]&0x3F)<<12)|((str[i+2]&0x3F)<<6)|(str[i+3]&0x3F); adv = 4; }
+		if ((cp >= 0x0600 && cp <= 0x06FF) || cp == ZWNJ) has_arabic = 1;
+		cps[n++] = cp; i += adv;
+	}
+	if (!has_arabic) { free(cps); return NULL; }
+
+	/* --- joining pass -> presentation forms (in logical order) --- */
+	Uint32* out = (Uint32*)malloc((n + 1) * sizeof(Uint32));
+	size_t m = 0;
+	for (size_t i = 0; i < n; i++) {
+		const ArabForms* cur = arab_lookup(cps[i]);
+		if (!cur) { if (cps[i] != ZWNJ) out[m++] = cps[i]; continue; }
+		/* previous connects to us? (it must be dual-joining, no ZWNJ gap) */
+		int prev_links = 0;
+		if (i > 0 && cps[i-1] != ZWNJ) {
+			const ArabForms* p = arab_lookup(cps[i-1]);
+			if (p && p->ini) prev_links = 1;
+		}
+		/* LAM + ALEF ligature */
+		if (cps[i] == 0x0644 && i+1 < n) {
+			Uint32 lig = 0;
+			switch (cps[i+1]) { case 0x0622: lig = 0xFEF5; break;
+			case 0x0623: lig = 0xFEF7; break; case 0x0625: lig = 0xFEF9; break;
+			case 0x0627: lig = 0xFEFB; break; }
+			if (lig) { out[m++] = lig + (prev_links ? 1 : 0); i++; continue; }
+		}
+		/* we connect to next? (we must be dual-joining, next joinable, no ZWNJ) */
+		int next_links = 0;
+		if (cur->ini && i+1 < n && cps[i+1] != ZWNJ && arab_lookup(cps[i+1]))
+			next_links = 1;
+		if (prev_links && next_links)      out[m++] = cur->med ? cur->med : cur->fin;
+		else if (prev_links)               out[m++] = cur->fin;
+		else if (next_links)               out[m++] = cur->ini ? cur->ini : cur->iso;
+		else                               out[m++] = cur->iso;
+	}
+	free(cps);
+
+	/* --- light bidi: reverse everything, then un-reverse LTR runs --- */
+	for (size_t i = 0; i < m / 2; i++) {
+		Uint32 t = out[i]; out[i] = out[m-1-i]; out[m-1-i] = t;
+	}
+	for (size_t i = 0; i < m; i++) out[i] = mirror_bracket(out[i]);
+	for (size_t i = 0; i < m;) {
+		if (is_ltr_keep(out[i])) {
+			size_t j = i; while (j < m && is_ltr_keep(out[j])) j++;
+			for (size_t a = i, b = j - 1; a < b; a++, b--) {
+				Uint32 t = out[a]; out[a] = out[b]; out[b] = t;
+			}
+			i = j;
+		} else i++;
+	}
+
+	/* --- UTF-8 encode --- */
+	char* res = (char*)malloc(m * 4 + 1);
+	size_t w = 0;
+	for (size_t i = 0; i < m; i++) {
+		Uint32 cp = out[i];
+		if (cp < 0x80) res[w++] = (char)cp;
+		else if (cp < 0x800) { res[w++] = 0xC0|(cp>>6); res[w++] = 0x80|(cp&0x3F); }
+		else if (cp < 0x10000) { res[w++] = 0xE0|(cp>>12); res[w++] = 0x80|((cp>>6)&0x3F); res[w++] = 0x80|(cp&0x3F); }
+		else { res[w++] = 0xF0|(cp>>18); res[w++] = 0x80|((cp>>12)&0x3F); res[w++] = 0x80|((cp>>6)&0x3F); res[w++] = 0x80|(cp&0x3F); }
+	}
+	res[w] = '\0';
+	free(out);
+	return res;
+}
+/* ------------------------------------------------------------------ */
+
 /*static*/ SDL_Surface* print_text(TTF_Font * font, char *str, SDL_Color /*&*/color) {
 	if (strlen (str) == 0)
 		return NULL;
@@ -333,9 +484,14 @@ void FONTS_SetTextColor(Uint8 r, Uint8 g, Uint8 b) {
 		SDL_FreeFormat(fmt);
 	}
 
+	/* Remake: shape Persian/Arabic text before rendering (phase 2-2) */
+	char* shaped = shape_rtl_utf8(str);
+
 	/* Transparent, low quality - closest to the original engine. */
 	/* Also we do need a monochrome rendering for palette support above */
-	SDL_Surface* tmp = TTF_RenderUTF8_Solid(font, str, color);
+	SDL_Surface* tmp = TTF_RenderUTF8_Solid(font, shaped ? shaped : str, color);
+	if (shaped)
+		free(shaped);
 	if (tmp == NULL) {
 		log_error("Error rendering text: %s; font is %p", TTF_GetError(), font);
 		return NULL;
@@ -643,7 +799,11 @@ print_text_wrap_debug(const char *text, int x, int y)
 	*pc= '\0';
 
       SDL_Rect dst = {x, y + res_height, -1, -1};
-      SDL_Surface* rendered_text = TTF_RenderUTF8_Shaded(system_font, pline, text_color, bgcolor);
+      /* Remake: shape Persian/Arabic in console/system text too */
+      char* shaped_line = shape_rtl_utf8(pline);
+      SDL_Surface* rendered_text = TTF_RenderUTF8_Shaded(system_font, shaped_line ? shaped_line : pline, text_color, bgcolor);
+      if (shaped_line)
+        free(shaped_line);
       if (!truecolor)
     	  rendered_text = ImageLoader::convertToPaletteFormat(rendered_text);
       IOGfxSurface* rendered_text2 = g_display->upload(rendered_text);

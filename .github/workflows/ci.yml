@@ -53,6 +53,7 @@ jobs:
           sh fetch-data.sh
           sh tools/ci/autostart-patch.sh
           export SDL_AUDIODRIVER=dummy
+          export FREEDINK_FONT="$PWD/fonts/Vazirmatn-Regular.ttf"
           Xvfb :99 -screen 0 1280x720x24 &
           export DISPLAY=:99
           sleep 2
@@ -75,6 +76,8 @@ jobs:
           test "$ALIVE_TITLE" = ok
           test "$ALIVE_AFTER" = ok
           grep -q "CI_AUTOSTART_OK" freedink.log
+          grep -q "CI_PERSIAN_SAY" freedink.log
+          grep -q "FREEDINK_FONT" freedink.log
 
       - name: Upload smoke artifacts
         if: always()

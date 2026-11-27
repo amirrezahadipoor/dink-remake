@@ -9,6 +9,7 @@ cat > "$S/START-AU.c" <<'EOF'
 //CI autostart: replicates START-1.c click() (new game) after a delay
 void main( void )
 {
+int &crap;
  wait(15000);
  debug("CI_AUTOSTART_FIRING");
  sp_x(1, 334);
@@ -25,6 +26,17 @@ void main( void )
  &cur_weapon = 1;
  arm_weapon();
  debug("CI_AUTOSTART_OK");
+ wait(2000);
+ debug("CI_PERSIAN_SAY");
+ &crap = 0;
+loop:
+ say_xy("`%می‌بینمت دینک! سلام ۱۲۳", 220, 150);
+ wait(1500);
+ &crap += 1;
+ if (&crap < 14)
+ {
+  goto loop;
+ }
  kill_this_task();
 }
 EOF
