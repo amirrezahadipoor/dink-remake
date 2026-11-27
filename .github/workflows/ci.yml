@@ -134,6 +134,7 @@ jobs:
           cp -r pigkeeper gamedata/pigkeeper
           # phase 5: the remake now ships ITS OWN maps (tools/mapgen.py); only tileset hardness is shared
           cp gamedata/dink/Hard.dat gamedata/pigkeeper/hard.dat
+          cp gamedata/dink/Dink.ini gamedata/pigkeeper/dink.ini  # ini فال‌بک ندارد (کشف #72)
           ./engine/src/freedink --refdir "$PWD/gamedata" --game "$PWD/gamedata/pigkeeper" --window --debug > pigkeeper.log 2>&1 &
           PID=$!
           sleep 7

@@ -76,6 +76,7 @@ jobs:
           # remake dmod (runs on base world until it ships its own maps)
           cp -r pigkeeper "$A/pigkeeper"
           cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
+          cp gamedata/dink/Dink.ini "$A/pigkeeper/dink.ini"
           # 4-2: بازفشرده‌سازی موسیقی فقط در بسته اندروید (دیتای دسکتاپ دست‌نخورده)
           for o in "$A"/dink/Sound/*.ogg; do
             ffmpeg -loglevel error -y -i "$o" -c:a libvorbis -q:a 4 "$o.tmp.ogg" && mv "$o.tmp.ogg" "$o"
@@ -164,6 +165,7 @@ jobs:
           cp -r gamedata/dink "$A/dink"
           cp -r pigkeeper "$A/pigkeeper"
           cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
+          cp gamedata/dink/Dink.ini "$A/pigkeeper/dink.ini"
           # 4-2: بازفشرده‌سازی موسیقی فقط در بسته اندروید (دیتای دسکتاپ دست‌نخورده)
           for o in "$A"/dink/Sound/*.ogg; do
             ffmpeg -loglevel error -y -i "$o" -c:a libvorbis -q:a 4 "$o.tmp.ogg" && mv "$o.tmp.ogg" "$o"

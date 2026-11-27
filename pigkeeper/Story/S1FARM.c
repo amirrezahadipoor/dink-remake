@@ -49,8 +49,12 @@ if (&st == 0)
 //درخت‌های صحنه (seq 32 — preload لازم برای نمایش)
 preload_seq(32);
 preload_seq(43);
-//🐞 ایشوی باز NOTANIM: تا فیکس رندر، دکور درخت غیرفعال (نشست بعد)
-debug("CH1_TREES_PENDING");
+&t = create_sprite(120, 150, 0, 32, 1);
+debug("CH1_TREE1");
+&t = create_sprite(555, 140, 0, 32, 2);
+debug("CH1_TREE2");
+&t = create_sprite(95, 370, 0, 32, 3);
+debug("CH1_TREE3");
 
 //تیلی — خوک فراری (brain 4 = خوک، seq 43)
 &t = create_sprite(470, 240, 4, 43, 1);

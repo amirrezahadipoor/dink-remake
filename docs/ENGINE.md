@@ -91,3 +91,4 @@ N × { uint32 LE offset;  char name[13];  /* nul-terminated */ }
 - `dink.dat`: name[20] · loc[769]·music[769]·indoor[769] (LE int) · 2240
 - تایل: `square_full_idx0 = tileset*128 + square` (Ts01 چمن → 128+)
 - خوک: brain=4، seq walk پایه 40 (41/43/47/49) — از Dink.ini
+- درس D-Mod تکمیلی (CI #72): `dink.ini` **فقط از خود D-Mod** خوانده می‌شود (بی‌فال‌بک) — بدون آن هیچ سکانس lazy ای تعریف نمی‌شود (اسپرایت‌های اسکریپتی نامرئی). بسته‌بندی باید dink.ini را هم مثل hard.dat کپی کند.

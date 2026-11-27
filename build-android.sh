@@ -35,6 +35,7 @@ cp -r pigkeeper "$A/pigkeeper"
 cp gamedata/dink/Dink.dat "$A/pigkeeper/dink.dat"
 cp gamedata/dink/Map.dat  "$A/pigkeeper/map.dat"
 cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
+cp gamedata/dink/Dink.ini "$A/pigkeeper/dink.ini"
 mkdir -p "$A/fonts"; cp fonts/Vazirmatn-Regular.ttf "$A/fonts/"
 
 cd android-project && gradle --no-daemon assembleDebug "$@"
