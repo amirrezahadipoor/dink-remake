@@ -27,6 +27,10 @@
 
 #include "text.h"
 
+#include <stdlib.h>
+#include <string.h>
+#include "SDL.h"
+
 #include "game_engine.h"
 #include "live_sprites_manager.h"
 #include "dinkini.h" /* check_seq_status */
@@ -51,6 +55,7 @@ int add_text_sprite(char* text, int script, int sprite_owner, int mx, int my)
 
   strncpy(spr[tsprite].text, text, 200-1); // TODO: currently truncated to 199 chars
   spr[tsprite].text[200-1] = '\0';
+  spr[tsprite].text_born = SDL_GetTicks(); /* remake: typewriter start */
 
   *plast_text = tsprite;
   spr[tsprite].kill_ttl = strlen(text) * TEXT_TIMER;
@@ -177,10 +182,61 @@ void text_draw(int h, double brightness) {
 
 	std::vector<TextCommand> cmds;
 
+	/* Remake: typewriter effect (phase 2-4) — reveal dialog text
+	   progressively (UTF-8 aware). Damage numbers are not affected.
+	   Disable with FREEDINK_TYPEWRITER=0. */
+	int fully_revealed = 1;
+	static int tw_enabled = -1;
+	if (tw_enabled == -1) {
+		const char* e = getenv("FREEDINK_TYPEWRITER");
+		tw_enabled = (e == NULL || strcmp(e, "0") != 0);
+	}
+	if (tw_enabled && spr[h].damage == -1) {
+		const Uint32 MS_PER_CHAR = 28;
+		Uint32 age = SDL_GetTicks() - spr[h].text_born;
+		unsigned long want = age / MS_PER_CHAR + 1; /* chars to show */
+		/* find byte offset of the want-th UTF-8 character */
+		unsigned long chars = 0; char* p = cr;
+		while (*p != '\0') {
+			if (((unsigned char)*p & 0xC0) != 0x80) { /* not a continuation byte */
+				if (chars >= want) break;
+				chars++;
+			}
+			p++;
+		}
+		if (*p != '\0') {
+			*p = '\0'; /* cr points into local 'crap' buffer: safe to cut */
+			fully_revealed = 0;
+		}
+	}
+
 	// Clear cache if color changed (i.e. during truecolor fade_down())
 	if (spr[h].text_cache != NULL && memcmp(&spr[h].text_cache_color, &fg, sizeof(SDL_Color)) == 0) {
 		delete spr[h].text_cache;
 		spr[h].text_cache = NULL;
+	}
+
+	/* While revealing, render directly (no cache) so the next frame
+	   can show more characters. */
+	if (!fully_revealed) {
+		if (spr[h].text_cache != NULL) {
+			delete spr[h].text_cache;
+			spr[h].text_cache = NULL;
+		}
+		if (strlen(cr) > 0) {
+			SDL_Color bg = {8,14,21};
+			rect abs_box = rcRect;
+			FONTS_SetTextColor(bg.r, bg.g, bg.b);
+			rect o = abs_box;
+			rect_offset(&o, 1, 1);  print_text_wrap_getcmds(cr, &o, 1, 0, FONT_DIALOG, &cmds);
+			rect_offset(&o, -2, 0); print_text_wrap_getcmds(cr, &o, 1, 0, FONT_DIALOG, &cmds);
+			rect_offset(&o, 1, 1);  print_text_wrap_getcmds(cr, &o, 1, 0, FONT_DIALOG, &cmds);
+			rect_offset(&o, 0, -2); print_text_wrap_getcmds(cr, &o, 1, 0, FONT_DIALOG, &cmds);
+			FONTS_SetTextColor(fg.r, fg.g, fg.b);
+			rect_offset(&o, 0, 1);  print_text_wrap_getcmds(cr, &o, 1, 0, FONT_DIALOG, &cmds);
+			print_text_cmds(&cmds);
+		}
+		return;
 	}
 
 	if (spr[h].text_cache == NULL) {

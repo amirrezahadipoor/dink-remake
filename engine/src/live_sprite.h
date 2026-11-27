@@ -77,6 +77,7 @@ struct sp
   Uint32 kill_start; /* birth */
   int script_num;
   char text[200];
+  Uint32 text_born; /* remake: SDL tick when the text appeared (typewriter) */
   int text_owner; /* if text sprite, sprite that is saying it */
   IOGfxSurface* text_cache;
   SDL_Rect text_cache_reldst;

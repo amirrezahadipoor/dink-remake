@@ -79,6 +79,40 @@ jobs:
           grep -q "CI_PERSIAN_SAY" freedink.log
           grep -q "FREEDINK_FONT" freedink.log
 
+      - name: Remake boot test (pigkeeper D-Mod, Persian title)
+        run: |
+          export SDL_AUDIODRIVER=dummy
+          export FREEDINK_FONT="$PWD/fonts/Vazirmatn-Regular.ttf"
+          export DISPLAY=:99
+          cp -r pigkeeper gamedata/pigkeeper
+          ./engine/src/freedink --refdir "$PWD/gamedata" --game pigkeeper --window --debug > pigkeeper.log 2>&1 &
+          PID=$!
+          sleep 14
+          import -window root rshot_title.png || true
+          ALIVE_T=ok; kill -0 $PID 2>/dev/null || ALIVE_T=dead
+          sleep 16
+          import -window root rshot_ingame.png || true
+          ALIVE_G=ok; kill -0 $PID 2>/dev/null || ALIVE_G=dead
+          kill $PID 2>/dev/null || true
+          echo "::group::pigkeeper.log (tail)"; tail -50 pigkeeper.log; echo "::endgroup::"
+          convert rshot_title.png -resize 800x remake_title.webp || true
+          convert rshot_ingame.png -resize 800x remake_ingame.webp || true
+          echo "title: $ALIVE_T | ingame: $ALIVE_G"
+          test "$ALIVE_T" = ok
+          test "$ALIVE_G" = ok
+          grep -q "PIGKEEPER_BOOT_OK" pigkeeper.log
+          grep -q "PIGKEEPER_INGAME" pigkeeper.log
+
+      - name: Upload remake artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remake-boot
+          path: |
+            remake_*.webp
+            pigkeeper.log
+          if-no-files-found: warn
+
       - name: Upload smoke artifacts
         if: always()
         uses: actions/upload-artifact@v4
