@@ -64,7 +64,9 @@
    On pre-ANSI systems without 'const', the config.h file is supposed to
    contain "#define const".  */
 # undef gettext
-# define gettext(Msgid) ((const char *) (Msgid))
+/* Remake/Android: the engine's say/print APIs take mutable char*;
+   keep the no-NLS fallback compatible with them. */
+# define gettext(Msgid) ((char *) (Msgid))
 # undef dgettext
 # define dgettext(Domainname, Msgid) ((void) (Domainname), gettext (Msgid))
 # undef dcgettext
