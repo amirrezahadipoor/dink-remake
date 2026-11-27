@@ -100,7 +100,7 @@ FastFileInit(char *filename, int max_handles)
   g_FileSize = lseek(g_File, 0, SEEK_END); /* needed by munmap */
   lseek (g_File, 0, SEEK_SET);
 
-  g_MemMap = mmap(NULL, g_FileSize, PROT_READ, MAP_PRIVATE, g_File, 0);
+  g_MemMap = (unsigned char*)mmap(NULL, g_FileSize, PROT_READ, MAP_PRIVATE, g_File, 0);
 #else
 #  ifdef _WIN32
   /* Open and mmap the file (Windows) */
