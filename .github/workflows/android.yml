@@ -40,6 +40,8 @@ jobs:
           curl -sLO https://github.com/libsdl-org/SDL_ttf/releases/download/release-$TTF_VER/SDL2_ttf-$TTF_VER.tar.gz
           curl -sL -o SDL2_gfx-$GFX_VER.tar.gz "https://downloads.sourceforge.net/project/sdl2gfx/SDL2_gfx-$GFX_VER.tar.gz" || \
           curl -sL -o SDL2_gfx-$GFX_VER.tar.gz "https://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-$GFX_VER.tar.gz"
+          # glm (header-only) for the GL2 renderer
+          curl -sL -o glm.tar.gz https://github.com/g-truc/glm/archive/refs/tags/1.0.1.tar.gz
           ls -la
 
       - name: Assemble jni tree
@@ -53,6 +55,7 @@ jobs:
           ln -sfn "$PWD/sdl-src/SDL2_mixer-$MIX_VER" $J/SDL2_mixer
           ln -sfn "$PWD/sdl-src/SDL2_ttf-$TTF_VER"   $J/SDL2_ttf
           ln -sfn "$PWD/sdl-src/SDL2_gfx-$GFX_VER"   $J/SDL2_gfx
+          ln -sfn "$PWD/sdl-src/glm-1.0.1/glm"       $J/glm
           # SDLActivity java sources (pinned to the same SDL release)
           mkdir -p android-project/app/src/main/java/org/libsdl/app
           cp sdl-src/SDL2-$SDL_VER/android-project/app/src/main/java/org/libsdl/app/*.java \

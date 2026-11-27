@@ -42,7 +42,8 @@ LOCAL_C_INCLUDES := \
   $(LOCAL_PATH)/../SDL/include \
   $(LOCAL_PATH)/../SDL2_image/include \
   $(LOCAL_PATH)/../SDL2_mixer/include \
-  $(LOCAL_PATH)/../SDL2_ttf
+  $(LOCAL_PATH)/../SDL2_ttf \
+  $(LOCAL_PATH)/../glm/..
 
 LOCAL_CFLAGS := -DHAVE_CONFIG_H -DENABLE_NLS=0 -O2 \
   -Wno-write-strings -Wno-format-security -Wno-deprecated-declarations
