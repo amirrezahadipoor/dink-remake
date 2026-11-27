@@ -261,5 +261,8 @@ jobs:
       - name: ffextract roundtrip selftest (all 142 archives)
         run: python3 tools/ffextract.py selftest gamedata/dink/graphics
 
-      - name: Balance simulator (B7 — TTK regression gate)
+      - name: Balance simulator (B2/B3/B4/B7 regression gate)
         run: python3 tools/balance_sim.py
+
+      - name: Persian audit (Q3 — zero English in gameplay text)
+        run: python3 tools/ci/persian-audit.py

@@ -16,6 +16,8 @@ sp_noclip(1, 1);
 
 
 debug("PIGKEEPER_BOOT_OK");
+//Q3: قالب فارسی متن اسلات سیو (پیش‌فرض موتور «Level &level» است)
+set_save_game_info("سطح &level — آخرین خوک‌چران");
 playmidi("1003.mid");
 
 //لوگوی کلاسیک بالای عنوان (v3)
