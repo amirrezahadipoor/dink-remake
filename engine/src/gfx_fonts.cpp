@@ -717,7 +717,16 @@ IOGfxSurface* print_text_flatten_cmds(std::vector<TextCommand>* cmds) {
 		max_x = max(max_x, it->dst.x+it->src.w);
 		max_y = max(max_y, it->dst.y+it->src.h);
 	}
-	SDL_Surface* flat = ImageLoader::newWithBlitFormat(max_x-min_x, max_y-min_y);
+	SDL_Surface* flat;
+	if (truecolor) {
+		/* Remake (typography): anti-aliased glyphs carry real alpha —
+		   compose them on a fully transparent ARGB canvas instead of
+		   a colorkey (no halo artifacts, no palette assumptions). */
+		flat = SDL_CreateRGBSurfaceWithFormat(0, max_x-min_x, max_y-min_y,
+		                                      32, SDL_PIXELFORMAT_ARGB8888);
+		SDL_FillRect(flat, NULL, SDL_MapRGBA(flat->format, 0, 0, 0, 0));
+	} else {
+	flat = ImageLoader::newWithBlitFormat(max_x-min_x, max_y-min_y);
 
 	// Find unused color for transparency
 	Uint32 key = 0;
@@ -730,6 +739,8 @@ IOGfxSurface* print_text_flatten_cmds(std::vector<TextCommand>* cmds) {
 		else
 			cur = {(Uint8)key, 0, 0, 255};
 		for (std::vector<TextCommand>::iterator it = cmds->begin(); it != cmds->end(); ++it) {
+			if (it->img->format->palette == NULL)
+				continue; /* blended surface: no palette to clash with */
 			if (memcmp(&it->img->format->palette->colors[1],
 					&cur,
 					sizeof(SDL_Color)) == 0) {
@@ -741,6 +752,7 @@ IOGfxSurface* print_text_flatten_cmds(std::vector<TextCommand>* cmds) {
 	} while (found);
 	SDL_FillRect(flat, NULL, key);
 	SDL_SetColorKey(flat, SDL_TRUE, key);
+	}
 
 	// Blit all texts
 	for (std::vector<TextCommand>::iterator it = cmds->begin(); it != cmds->end(); ++it) {
