@@ -30,6 +30,7 @@
 #endif
 
 #include <string.h>
+#include "SDL.h" /* remake: perf telemetry ticks */
 
 #include "game_engine.h"
 #include "live_sprites_manager.h"
@@ -357,6 +358,7 @@ extern void flags_read_slot(int num);
 
 void save_game(int num)
 {
+  Uint32 remake_t0 = SDL_GetTicks(); /* perf telemetry */
   char skipbuf[10000]; // more than any fseek we do
   memset(skipbuf, 0, 10000);
 
@@ -519,6 +521,7 @@ void save_game(int num)
   free(path_final);
   journal_write_slot(num);
   flags_write_slot(num);
+  log_info("PERF save_ms=%u slot=%d", (unsigned)(SDL_GetTicks()-remake_t0), num);
 
 #ifdef __EMSCRIPTEN__
   // Flush changes to IDBFS

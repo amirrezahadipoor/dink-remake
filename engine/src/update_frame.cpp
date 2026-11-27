@@ -435,6 +435,11 @@ void remake_touch_overlay_render() {
 /* Remake (perf): lightweight FPS telemetry — one log line / 5s */
 static void remake_perf_tick() {
 	static Uint32 win_start = 0; static int frames = 0;
+	static int first_logged = 0;
+	if (!first_logged) {
+		log_info("PERF first_frame_ms=%u", (unsigned)SDL_GetTicks());
+		first_logged = 1;
+	}
 	frames++;
 	Uint32 now = SDL_GetTicks();
 	if (win_start == 0) { win_start = now; return; }

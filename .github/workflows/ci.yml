@@ -114,7 +114,12 @@ jobs:
           FPSV=$(grep -a "PERF fps=" freedink.log | tail -1 | grep -oE 'fps=[0-9]+' | cut -d= -f2)
           echo "measured fps: ${FPSV:-none}"
           test -n "$FPSV" && test "$FPSV" -ge 30
-          echo "perf floor (>=30fps on CI llvmpipe) passed ✓"
+          # بوت و سیو
+          grep -a "PERF first_frame_ms=\|PERF save_ms=" freedink.log | head -4
+          FFMS=$(grep -a "PERF first_frame_ms=" freedink.log | head -1 | grep -oE '=[0-9]+' | tr -d '=')
+          echo "first frame: ${FFMS:-none} ms"
+          test -n "$FFMS" && test "$FFMS" -le 15000
+          echo "perf floors passed ✓"
 
       - name: Remake boot test (pigkeeper D-Mod, Persian title)
         run: |

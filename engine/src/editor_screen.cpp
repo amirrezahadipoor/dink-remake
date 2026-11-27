@@ -93,9 +93,26 @@ int load_screen_to(const char* path, const int num, struct editor_screen* screen
 {
   char skipbuf[10000]; // more than any fseek we do
 
+  /* Remake (perf): keep the map file handle open across screen
+     transitions — saves an fopen/fclose (slow on phone flash) on
+     every screen change. Re-opened if the path changes (load_game
+     can switch to another map.dat). */
+  static FILE* f_cache = NULL;
+  static char path_cache[256] = "";
+
   FILE *f = NULL;
   long holdme,lsize;
-  f = paths_dmodfile_fopen(path, "rb");
+  if (f_cache != NULL && strncmp(path_cache, path, sizeof(path_cache)) == 0) {
+    f = f_cache;
+  } else {
+    if (f_cache != NULL) { fclose(f_cache); f_cache = NULL; }
+    f = paths_dmodfile_fopen(path, "rb");
+    if (f != NULL) {
+      f_cache = f;
+      strncpy(path_cache, path, sizeof(path_cache)-1);
+      path_cache[sizeof(path_cache)-1] = '\0';
+    }
+  }
   if (!f)
     {
       log_error("Cannot find %s file!!!", path);
@@ -195,7 +212,7 @@ int load_screen_to(const char* path, const int num, struct editor_screen* screen
   fread(skipbuf, 1, 1, f); // reproduce memory alignment
   // offset 31280
   
-  fclose(f);
+  /* remake perf: handle stays cached open (see top of function) */
   return 0;
 }
 

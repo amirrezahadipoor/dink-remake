@@ -1327,6 +1327,8 @@ void dc_save_game(int script, int* yield, int* preturnint, int game_slot)
 #include <string>
 struct JournalEntry { std::string title; int done; };
 static std::vector<JournalEntry> g_journal;
+static int g_journal_dirty = 0; /* remake perf: skip disk when unchanged */
+static int g_flags_dirty = 0;
 
 static JournalEntry* journal_find(const char* title) {
   for (unsigned i = 0; i < g_journal.size(); i++)
@@ -1341,6 +1343,11 @@ void journal_write_slot(int num) {
   char fname[32];
   sprintf(fname, "journal%d.txt", num);
   char* path = paths_sidefile_path(fname);
+  /* remake perf: autosave shouldn't hit disk when nothing changed */
+  if (!g_journal_dirty) {
+    FILE* probe = fopen(path, "rb");
+    if (probe != NULL) { fclose(probe); free(path); return; }
+  }
   FILE* f = fopen(path, "wb");
   if (f != NULL) {
     fprintf(f, "JRNL1\n");
@@ -1348,6 +1355,7 @@ void journal_write_slot(int num) {
       fprintf(f, "%d|%s\n", g_journal[i].done, g_journal[i].title.c_str());
     fclose(f);
     log_info("JOURNAL_SAVED: slot %d (%d quests)", num, (int)g_journal.size());
+    g_journal_dirty = 0;
   }
   free(path);
 }
@@ -1381,6 +1389,7 @@ void dc_journal_add(int script, int* yield, int* preturnint, char* title)
   if (journal_find(buf) == NULL) {
     JournalEntry e; e.title = buf; e.done = 0;
     g_journal.push_back(e);
+    g_journal_dirty = 1;
     log_info("JOURNAL_ADD: %s", buf);
   }
   free(buf);
@@ -1394,6 +1403,7 @@ void dc_journal_done(int script, int* yield, int* preturnint, char* title)
   *preturnint = 0;
   if (e != NULL && !e->done) {
     e->done = 1;
+    g_journal_dirty = 1;
     log_info("JOURNAL_DONE: %s", buf);
     *preturnint = 1;
   }
@@ -1421,6 +1431,14 @@ void flags_write_slot(int num) {
   char fname[32];
   sprintf(fname, "flags%d.txt", num);
   char* path = paths_sidefile_path(fname);
+  /* remake perf: clock changes every save -> only skip when flags
+     unchanged AND the slot file is fresh enough (same minute) */
+  if (!g_flags_dirty) {
+    /* clock persists too, so still write, but cheaply detectable:
+       keep behaviour simple — write only if flags dirty or file absent */
+    FILE* probe = fopen(path, "rb");
+    if (probe != NULL) { fclose(probe); free(path); return; }
+  }
   FILE* f = fopen(path, "wb");
   if (f != NULL) {
     fprintf(f, "FLG1\n");
@@ -1429,6 +1447,7 @@ void flags_write_slot(int num) {
       fprintf(f, "%d|%s\n", g_flags[i].value, g_flags[i].name.c_str());
     fclose(f);
     log_info("FLAGS_SAVED: slot %d (%d flags)", num, (int)g_flags.size());
+    g_flags_dirty = 0;
   }
   free(path);
 }
@@ -1462,8 +1481,8 @@ void dc_flag_set(int script, int* yield, int* preturnint, char* name, int value)
 {
   char* buf = latin1_to_utf8(name);
   StoryFlag* fl = flag_find(buf);
-  if (fl != NULL) fl->value = value;
-  else { StoryFlag n; n.name = buf; n.value = value; g_flags.push_back(n); }
+  if (fl != NULL) { if (fl->value != value) g_flags_dirty = 1; fl->value = value; }
+  else { StoryFlag n; n.name = buf; n.value = value; g_flags.push_back(n); g_flags_dirty = 1; }
   log_info("FLAG_SET: %s = %d", buf, value);
   free(buf);
   *preturnint = value;

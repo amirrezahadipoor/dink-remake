@@ -221,7 +221,9 @@ void text_draw(int h, double brightness) {
 	}
 
 	// Clear cache if color changed (i.e. during truecolor fade_down())
-	if (spr[h].text_cache != NULL && memcmp(&spr[h].text_cache_color, &fg, sizeof(SDL_Color)) == 0) {
+	// Remake perf/fix: original logic was inverted (cleared on EQUAL
+	// colors) and never stored the color — now invalidate on change.
+	if (spr[h].text_cache != NULL && memcmp(&spr[h].text_cache_color, &fg, sizeof(SDL_Color)) != 0) {
 		delete spr[h].text_cache;
 		spr[h].text_cache = NULL;
 	}
@@ -269,6 +271,7 @@ void text_draw(int h, double brightness) {
 		if (cmds.size() > 0) {
 			IOGfxSurface* surf = print_text_flatten_cmds(&cmds);
 			spr[h].text_cache = surf;
+			spr[h].text_cache_color = fg; /* remake: enable change detection */
 			spr[h].text_cache_reldst = cmds[0].dst;
 			print_text_cache(spr[h].text_cache, spr[h].text_cache_reldst, rcRect.left, rcRect.top);
 		}

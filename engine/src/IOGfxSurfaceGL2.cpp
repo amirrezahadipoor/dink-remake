@@ -155,7 +155,7 @@ int IOGfxSurfaceGL2::internalBlit(IOGfxSurface* src, const SDL_Rect* srcrect, SD
 			x2, y2,
 		};
 		gl->BindBuffer(GL_ARRAY_BUFFER, display->vboCroppedSpriteTexcoords);
-		gl->BufferData(GL_ARRAY_BUFFER, sizeof(croppedSpriteTexcoords), croppedSpriteTexcoords, GL_STATIC_DRAW);
+		gl->BufferData(GL_ARRAY_BUFFER, sizeof(croppedSpriteTexcoords), croppedSpriteTexcoords, GL_STREAM_DRAW); /* remake perf: per-frame buffer */
 		vbo = display->vboCroppedSpriteTexcoords;
 	}
 
