@@ -19,9 +19,10 @@ SUPPORT_OPUS := false
 SUPPORT_GME := false
 SUPPORT_MID_TIMIDITY := true
 
-# SDL2_image: بازی فقط BMP می‌خواند (stb داخلی)؛ ماژول‌های خارجی خاموش
+# SDL2_image: بازی فقط BMP می‌خواند؛ همه کدک‌های خارجی خاموش
+# (PNG در فاز ۴ برای اطلس‌ها با ماژول درست روشن می‌شود)
 SUPPORT_AVIF := false
 SUPPORT_JXL := false
 SUPPORT_WEBP := false
-SUPPORT_JPG := true
-SUPPORT_PNG := true
+SUPPORT_JPG := false
+SUPPORT_PNG := false
