@@ -1586,7 +1586,8 @@ void dc_scene_tint(int script, int* yield, int* preturnint, int r, int g, int b)
 /* Remake (M11): local achievements (flag-backed, zero network) */
 /* Remake (M12/B5): خواندن/نوشتن تنظیمات از DinkC */
 extern int remake_set_sound, remake_set_music, remake_set_vibrate,
-           remake_set_shake, remake_set_dmgnum, remake_set_difficulty;
+           remake_set_shake, remake_set_dmgnum, remake_set_difficulty,
+           remake_set_scaler;
 extern void remake_settings_load(void);
 extern void remake_settings_save(void);
 static int* remake_setting_ptr(const char* name) {
@@ -1596,6 +1597,7 @@ static int* remake_setting_ptr(const char* name) {
   if (strcmp(name, "shake") == 0) return &remake_set_shake;
   if (strcmp(name, "dmgnum") == 0) return &remake_set_dmgnum;
   if (strcmp(name, "difficulty") == 0) return &remake_set_difficulty;
+  if (strcmp(name, "scaler") == 0) return &remake_set_scaler;
   return NULL;
 }
 void dc_setting_set(int script, int* yield, int* preturnint, char* name, int val)
