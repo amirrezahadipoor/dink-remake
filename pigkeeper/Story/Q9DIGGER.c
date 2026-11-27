@@ -6,12 +6,12 @@ sp_speed(&current_sprite, 1);
 sp_timing(&current_sprite, 33);
 sp_base_walk(&current_sprite, 130);
 sp_base_death(&current_sprite, 140);
-sp_hitpoints(&current_sprite, 26);
+sp_hitpoints(&current_sprite, 78);
 sp_defense(&current_sprite, 1);
 sp_strength(&current_sprite, 4);
 sp_touch_damage(&current_sprite, 4);
 sp_gold(&current_sprite, 15);
-sp_exp(&current_sprite, 30);
+sp_exp(&current_sprite, 200);
 sp_target(&current_sprite, 1);
 }
 void hit( void )

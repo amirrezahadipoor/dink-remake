@@ -5,12 +5,12 @@ sp_brain(&current_sprite, 9);
 sp_speed(&current_sprite, 1);
 sp_timing(&current_sprite, 33);
 sp_base_walk(&current_sprite, 530);
-sp_hitpoints(&current_sprite, 45);
+sp_hitpoints(&current_sprite, 100);
 sp_defense(&current_sprite, 2);
 sp_strength(&current_sprite, 7);
 sp_touch_damage(&current_sprite, 7);
 sp_gold(&current_sprite, 40);
-sp_exp(&current_sprite, 60);
+sp_exp(&current_sprite, 500);
 sp_target(&current_sprite, 1);
 debug("CH10_SMOKE_READY");
 }

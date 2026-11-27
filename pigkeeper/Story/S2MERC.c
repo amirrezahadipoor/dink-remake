@@ -11,7 +11,7 @@ sp_defense(&current_sprite, 1);
 sp_strength(&current_sprite, 5);
 sp_touch_damage(&current_sprite, 5);
 sp_gold(&current_sprite, 7);
-sp_exp(&current_sprite, 18);
+sp_exp(&current_sprite, 40);
 preload_seq(131);
 preload_seq(133);
 preload_seq(141);
@@ -37,7 +37,7 @@ if (&left == 2)
 {
  flag_set("ch2_f1_clear", 1);
  journal_add("از جنگل غرب عبور کن");
- say_xy("`%دینک: این‌ها دیگه کی بودن؟! ...باید ادامه بدم.", 100, 60);
+ say_xy("`$دینک: این‌ها دیگه کی بودن؟! ...من نترسیدم. فقط دارم سریع فکر می‌کنم.", 100, 60);
  achieve("اولین نبرد");
 }
 }
