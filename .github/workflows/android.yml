@@ -28,6 +28,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Cache Gradle (shields Maven 429 flakes)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('android-project/app/build.gradle', 'android-project/build.gradle') }}
+
       - name: Cache SDL sources
         id: sdlcache
         uses: actions/cache@v4
@@ -123,6 +131,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Cache Gradle (shields Maven 429 flakes)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('android-project/app/build.gradle', 'android-project/build.gradle') }}
 
       - name: Cache SDL sources
         uses: actions/cache@v4
