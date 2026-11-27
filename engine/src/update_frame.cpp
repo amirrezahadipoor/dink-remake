@@ -470,11 +470,29 @@ static void remake_touch_overlay_build() {
 	log_info("PERF touch overlay cached (%d labels)", RTOUCH_NLABELS);
 }
 
+static IOGfxSurface* s_btn_bg = NULL;
+static void touch_btnbg_build() {
+	SDL_Surface* bs = SDL_CreateRGBSurfaceWithFormat(0, 96, 30, 32, SDL_PIXELFORMAT_ARGB8888);
+	SDL_FillRect(bs, NULL, SDL_MapRGBA(bs->format, 10, 14, 24, 135));
+	SDL_Rect edge = {0, 0, 96, 1};
+	SDL_FillRect(bs, &edge, SDL_MapRGBA(bs->format, 200, 200, 210, 90));
+	s_btn_bg = g_display->upload(bs);
+}
+
 void remake_touch_overlay_render() {
 	if (!g_touch.on || mode < 2)
 		return;
 	if (!s_lbl_built)
 		remake_touch_overlay_build();
+	if (s_btn_bg == NULL)
+		touch_btnbg_build();
+	/* کپسول نیمه‌شفاف زیر هر لیبل — خوانایی روی هر صحنه */
+	for (int i = 0; i < TZ_COUNT; i++) {
+		if (s_btn_bg != NULL) {
+			SDL_Rect d = {g_tz[i].lx - 48, g_tz[i].ly - 4, 96, 30};
+			IOGFX_backbuffer->blit(s_btn_bg, NULL, &d);
+		}
+	}
 	for (int i = 0; i < RTOUCH_NLABELS - 1; i++)
 		if (s_lbl_surf[i] != NULL)
 			print_text_cache(s_lbl_surf[i], s_lbl_rel[i], 0, 0);

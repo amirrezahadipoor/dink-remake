@@ -883,6 +883,18 @@ void Say(char thing[500], int px, int py) {
 }
 
 
+
+/* Remake (UI v2): refined dialog palette — applied AFTER classic init
+   so palette-mode stays compatible, truecolor gets the richer tones. */
+static void remake_refine_colors()
+{
+  if (!truecolor) return;
+  font_colors[4]  = {255, 120,  90, 255};  /* قرمز هشدار گرم */
+  font_colors[7]  = {188, 200, 220, 255};  /* خاکستری-آبی لطیف */
+  font_colors[9]  = {196, 164, 110, 255};  /* کهربایی کم‌رنگ (پانوشت) */
+  font_colors[14] = {244, 208,  96, 255};  /* طلایی نرم */
+  font_colors[15] = {245, 243, 238, 255};  /* سفید شکسته (چشم‌نواز) */
+}
 void gfx_fonts_init_colors()
 {
   //Light Magenta
@@ -959,4 +971,5 @@ void gfx_fonts_init_colors()
   font_colors[15].r = 255;
   font_colors[15].g = 255;
   font_colors[15].b = 255;
+  remake_refine_colors();
 }

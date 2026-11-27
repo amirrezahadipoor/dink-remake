@@ -271,11 +271,13 @@ void text_draw(int h, double brightness) {
 		if (remake_say_frame && spr[h].damage == -1 && spr[h].text_owner == 1000) {
 			static IOGfxSurface* barsurf = NULL;
 			if (barsurf == NULL) {
-				SDL_Surface* bs = SDL_CreateRGBSurfaceWithFormat(0, 640, 34, 32, SDL_PIXELFORMAT_ARGB8888);
-				SDL_FillRect(bs, NULL, SDL_MapRGBA(bs->format, 6, 10, 18, 185));
+				SDL_Surface* bs = SDL_CreateRGBSurfaceWithFormat(0, 640, 46, 32, SDL_PIXELFORMAT_ARGB8888);
+				SDL_FillRect(bs, NULL, SDL_MapRGBA(bs->format, 8, 12, 22, 190));
+				SDL_Rect gold = {0, 0, 640, 2}; /* خط زرین بالای قاب */
+				SDL_FillRect(bs, &gold, SDL_MapRGBA(bs->format, 212, 180, 96, 230));
 				barsurf = g_display->upload(bs);
 			}
-			SDL_Rect bar = {0, rcRect.top - 6, 640, 34};
+			SDL_Rect bar = {0, rcRect.top - 9, 640, 46};
 			IOGFX_backbuffer->blit(barsurf, NULL, &bar);
 		}
 	}
