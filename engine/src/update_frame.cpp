@@ -217,6 +217,10 @@ static void remake_autosave() {
 	}
 	if (interval <= 0 || mode < 2)
 		return;
+	/* remake audit #1: never autosave mid-cutscene/dialog (player frozen)
+	   — reloading such a save could trap the player */
+	if (spr[1].freeze)
+		return;
 	Uint32 now = SDL_GetTicks();
 	if (now - last >= (Uint32)interval * 1000) {
 		last = now;

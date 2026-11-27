@@ -76,7 +76,7 @@ struct sp
   int kill_ttl; /* time to live */
   Uint32 kill_start; /* birth */
   int script_num;
-  char text[200];
+  char text[512]; /* remake: was 200 — Persian UTF-8 needs ~2 bytes/char */
   Uint32 text_born; /* remake: SDL tick when the text appeared (typewriter) */
   int text_owner; /* if text sprite, sprite that is saying it */
   IOGfxSurface* text_cache;

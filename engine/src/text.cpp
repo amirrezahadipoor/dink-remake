@@ -53,8 +53,18 @@ int add_text_sprite(char* text, int script, int sprite_owner, int mx, int my)
       return 0;
     }
 
-  strncpy(spr[tsprite].text, text, 200-1); // TODO: currently truncated to 199 chars
-  spr[tsprite].text[200-1] = '\0';
+  /* remake: 512-byte buffer + UTF-8-boundary-safe truncation
+     (never leave a dangling multi-byte sequence at the cut point) */
+  strncpy(spr[tsprite].text, text, 512-1);
+  spr[tsprite].text[512-1] = '\0';
+  {
+    int e = strlen(spr[tsprite].text);
+    while (e > 0 && ((unsigned char)spr[tsprite].text[e-1] & 0xC0) == 0x80
+           && e >= 512-4)
+      spr[tsprite].text[--e] = '\0';
+    if (e > 0 && (unsigned char)spr[tsprite].text[e-1] >= 0xC0 && e >= 512-4)
+      spr[tsprite].text[e-1] = '\0';
+  }
   spr[tsprite].text_born = SDL_GetTicks(); /* remake: typewriter start */
 
   *plast_text = tsprite;
@@ -108,13 +118,13 @@ int say_text_xy(char* text, int mx, int my, int script)
 
 /* Get sprite #h, grab its text and display it */
 void text_draw(int h, double brightness) {
-	char crap[200];
+	char crap[512]; /* remake: match live_sprite.text */
 	char *cr;
 	rect rcRect;
 	int color = 0;
 	
 	if (spr[h].damage == -1) {
-		sprintf(crap, "%s", spr[h].text);
+		snprintf(crap, sizeof(crap), "%s", spr[h].text); /* remake: bounded */
 		cr = &crap[0];
 		color = 14;
 		while( cr[0] == '`') {

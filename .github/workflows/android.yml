@@ -83,9 +83,130 @@ jobs:
           gradle --no-daemon assembleDebug
           ls -la app/build/outputs/apk/debug/
 
+      - name: Strict APK content audit
+        working-directory: android-project
+        run: |
+          unzip -l app/build/outputs/apk/debug/app-debug.apk > apk.lst
+          grep -q "lib/arm64-v8a/libmain.so" apk.lst
+          grep -q "lib/arm64-v8a/libSDL2.so" apk.lst
+          grep -q "lib/arm64-v8a/libSDL2_ttf.so" apk.lst
+          grep -q "assets/freedink-data/dink/Map.dat" apk.lst
+          grep -q "assets/freedink-data/dink/Hard.dat" apk.lst
+          grep -q "assets/freedink-data/fonts/Vazirmatn-Regular.ttf" apk.lst
+          grep -q "assets/freedink-data/pigkeeper/Story/START.c" apk.lst
+          grep -q "assets/freedink-data/pigkeeper/map.dat" apk.lst
+          echo "APK content audit passed ✓"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: pigkeeper-debug-apk
           path: android-project/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+  emulator-boot:
+    name: Boot test on Android emulator (x86_64, API 30)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache SDL sources
+        uses: actions/cache@v4
+        with:
+          path: sdl-src
+          key: sdl-${{ env.SDL_VER }}-${{ env.IMG_VER }}-${{ env.MIX_VER }}-${{ env.TTF_VER }}-${{ env.GFX_VER }}
+
+      - name: Download SDL family sources
+        run: |
+          mkdir -p sdl-src && cd sdl-src
+          [ -f SDL2-$SDL_VER.tar.gz ] || curl -sLO https://github.com/libsdl-org/SDL/releases/download/release-$SDL_VER/SDL2-$SDL_VER.tar.gz
+          [ -f SDL2_image-$IMG_VER.tar.gz ] || curl -sLO https://github.com/libsdl-org/SDL_image/releases/download/release-$IMG_VER/SDL2_image-$IMG_VER.tar.gz
+          [ -f SDL2_mixer-$MIX_VER.tar.gz ] || curl -sLO https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MIX_VER/SDL2_mixer-$MIX_VER.tar.gz
+          [ -f SDL2_ttf-$TTF_VER.tar.gz ] || curl -sLO https://github.com/libsdl-org/SDL_ttf/releases/download/release-$TTF_VER/SDL2_ttf-$TTF_VER.tar.gz
+          [ -f SDL2_gfx-$GFX_VER.tar.gz ] || curl -sL -o SDL2_gfx-$GFX_VER.tar.gz "https://downloads.sourceforge.net/project/sdl2gfx/SDL2_gfx-$GFX_VER.tar.gz" || \
+            curl -sL -o SDL2_gfx-$GFX_VER.tar.gz "https://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-$GFX_VER.tar.gz"
+          [ -f glm.tar.gz ] || curl -sL -o glm.tar.gz https://github.com/g-truc/glm/archive/refs/tags/1.0.1.tar.gz
+
+      - name: Assemble jni tree
+        run: |
+          cd sdl-src && for t in *.tar.gz; do tar xzf "$t"; done && cd ..
+          J=android-project/app/jni
+          ln -sfn "$PWD/sdl-src/SDL2-$SDL_VER"       $J/SDL
+          ln -sfn "$PWD/sdl-src/SDL2_image-$IMG_VER" $J/SDL2_image
+          ln -sfn "$PWD/sdl-src/SDL2_mixer-$MIX_VER" $J/SDL2_mixer
+          ln -sfn "$PWD/sdl-src/SDL2_ttf-$TTF_VER"   $J/SDL2_ttf
+          ln -sfn "$PWD/sdl-src/SDL2_gfx-$GFX_VER"   $J/SDL2_gfx
+          ln -sfn "$PWD/sdl-src/glm-1.0.1/glm"       $J/glm
+          mkdir -p android-project/app/src/main/java/org/libsdl/app
+          cp sdl-src/SDL2-$SDL_VER/android-project/app/src/main/java/org/libsdl/app/*.java \
+             android-project/app/src/main/java/org/libsdl/app/
+
+      - name: Fetch game data + build assets
+        run: |
+          sh fetch-data.sh
+          A=android-project/app/src/main/assets/freedink-data
+          mkdir -p "$A"
+          cp -r gamedata/dink "$A/dink"
+          cp -r pigkeeper "$A/pigkeeper"
+          cp gamedata/dink/Dink.dat "$A/pigkeeper/dink.dat"
+          cp gamedata/dink/Map.dat  "$A/pigkeeper/map.dat"
+          cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
+          mkdir -p "$A/fonts"
+          cp fonts/Vazirmatn-Regular.ttf "$A/fonts/"
+
+      - name: Build x86_64 APK for emulator
+        working-directory: android-project
+        run: gradle --no-daemon assembleDebug -Pabis=x86_64
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Boot game on emulator + collect proof
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            adb install android-project/app/build/outputs/apk/debug/app-debug.apk
+            adb logcat -c || true
+            adb shell am start -n ir.pigkeeper.dink/.MainActivity
+            sleep 100
+            adb logcat -d > logcat.txt || true
+            adb exec-out screencap -p > emu_boot.png || true
+            echo "--- pigkeeper logcat lines:"; grep -a pigkeeper logcat.txt | head -10 || true
+            echo "--- SDL/engine lines:"; grep -aE "SDL|refdir|freedink" logcat.txt | head -15 || true
+            grep -aq "Extracting game data" logcat.txt
+            grep -aq "Game data extracted" logcat.txt
+            grep -aq "refdir = " logcat.txt
+            ! grep -aq "FATAL EXCEPTION" logcat.txt
+            APPPID=$(adb shell pidof ir.pigkeeper.dink | tr -d '\r')
+            echo "app pid: $APPPID"; test -n "$APPPID"
+            echo "emulator boot checks passed ✓"
+
+      - name: Compress proof screenshot
+        if: always()
+        run: |
+          sudo apt-get install -y webp >/dev/null 2>&1 || true
+          [ -f emu_boot.png ] && cwebp -q 70 -resize 800 0 emu_boot.png -o emu_boot.webp 2>/dev/null || true
+          ls -la emu_boot.* 2>/dev/null || true
+
+      - name: Upload emulator proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-boot-proof
+          path: |
+            emu_boot.webp
+            emu_boot.png
+            logcat.txt
+          if-no-files-found: warn

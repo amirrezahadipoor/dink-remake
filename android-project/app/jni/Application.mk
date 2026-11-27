@@ -1,4 +1,4 @@
-APP_ABI := arm64-v8a
+# APP_ABI از gradle (abiFilters) می‌آید
 APP_PLATFORM := android-23
 APP_STL := c++_shared
 APP_CPPFLAGS := -std=gnu++14 -fexceptions -frtti
