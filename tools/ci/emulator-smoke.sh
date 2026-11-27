@@ -59,9 +59,10 @@ grep -aq "SDL/APP" logcat.txt
 grep -aq "refdir" logcat.txt || grep -aq "AAudioStream" logcat.txt
 # گیم‌پلی واقعی (autostart داخل APK امولاتور)
 grep -aq "CI_AUTOSTART_OK" logcat.txt
-# لمس: فعال شده و حداقل یک تغییر state ثبت شده
+# لمس: فعال + حرکت با سوایپ + تپ دکمه (لچ رویدادی)
 grep -aq "TOUCH_CONTROLS_ON" logcat.txt
-grep -aq "TOUCH_STATE" logcat.txt
+grep -aq "TOUCH_STATE mv\[r1" logcat.txt
+grep -aq "TOUCH_TAP" logcat.txt
 
 APPPID2=$(adb shell pidof ir.pigkeeper.dink | tr -d '\r')
 echo "app pid after soak: $APPPID2"

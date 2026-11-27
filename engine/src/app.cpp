@@ -461,6 +461,13 @@ void App::one_iter() {
 				case SDL_QUIT:
 					run = 0;
 					break;
+				case SDL_FINGERDOWN:
+					{ /* remake (3-7): latch sub-frame taps for buttons */
+						extern void remake_touch_finger_down(float x, float y);
+						remake_touch_finger_down(ev->tfinger.x, ev->tfinger.y);
+					}
+					input(ev);
+					break;
 				default:
 					input(ev);
 					break;

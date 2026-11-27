@@ -348,8 +348,35 @@ static void remake_touch_poll() {
 	}
 }
 
+/* Remake (3-7 v1.1): taps shorter than a frame are latched from the
+   SDL_FINGERDOWN event so quick button presses never get lost. */
+static struct { int atk, talk, mag, inv, menu; } g_touch_latch;
+
+void remake_touch_finger_down(float x, float y) {
+	if (!g_touch.on || mode < 2) return;
+	if (x < 0.45f) return; /* movement zone: handled by polling */
+	int hitany = 0;
+	if (touch_hit(x, y, 0.875f, 0.78f, 0.100f)) { g_touch_latch.atk  = 1; hitany = 1; }
+	if (touch_hit(x, y, 0.720f, 0.88f, 0.080f)) { g_touch_latch.mag  = 1; hitany = 1; }
+	if (touch_hit(x, y, 0.720f, 0.60f, 0.080f)) { g_touch_latch.talk = 1; hitany = 1; }
+	if (touch_hit(x, y, 0.575f, 0.74f, 0.070f)) { g_touch_latch.inv  = 1; hitany = 1; }
+	if (touch_hit(x, y, 0.955f, 0.06f, 0.060f)) { g_touch_latch.menu = 1; hitany = 1; }
+	if (hitany)
+		log_info("TOUCH_TAP atk%d talk%d mag%d inv%d menu%d",
+		         g_touch_latch.atk, g_touch_latch.talk, g_touch_latch.mag,
+		         g_touch_latch.inv, g_touch_latch.menu);
+}
+
 static void remake_touch_apply() {
 	if (!g_touch.on || mode < 2) return;
+	/* one-frame pulses from latched taps */
+	if (g_touch_latch.atk)  { sjoy.joybit[ACTION_ATTACK] = 1; }
+	if (g_touch_latch.talk) { sjoy.joybit[ACTION_TALK] = 1; }
+	if (g_touch_latch.mag)  { sjoy.joybit[ACTION_MAGIC] = 1; }
+	if (g_touch_latch.inv)  { sjoy.joybit[ACTION_INVENTORY] = 1; }
+	if (g_touch_latch.menu) { sjoy.joybit[ACTION_MENU] = 1; }
+	g_touch_latch.atk = g_touch_latch.talk = g_touch_latch.mag =
+		g_touch_latch.inv = g_touch_latch.menu = 0;
 	if (g_touch.r)    sjoy.joybit[ACTION_RIGHT] = 1;
 	if (g_touch.l)    sjoy.joybit[ACTION_LEFT] = 1;
 	if (g_touch.u)    sjoy.joybit[ACTION_UP] = 1;
