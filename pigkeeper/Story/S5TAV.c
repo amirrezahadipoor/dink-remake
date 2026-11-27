@@ -8,9 +8,10 @@ preload_seq(87);
 preload_seq(174);
 &t = create_sprite(320, 225, 0, 87, 2);
 sp_hard(&t, 1);
-&t = create_sprite(165, 330, 0, 174, 1);
+//بشکه‌ها بالای نوار دیوار پایینی (y>284 زیر دیوار دفن می‌شود)
+&t = create_sprite(150, 270, 0, 174, 1);
 sp_hard(&t, 1);
-&t = create_sprite(202, 344, 0, 174, 1);
+&t = create_sprite(186, 276, 0, 174, 1);
 sp_hard(&t, 1);
 debug("TAV_PROPS");
 preload_seq(221);
