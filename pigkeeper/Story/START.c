@@ -36,6 +36,8 @@ make_button(205, 325, 435, 358, 0);
 
 //صفحه عنوان — تایپوگرافی v2 (x=10 یعنی وسط‌چین کامل صفحه)
 int &i;
+int &go;
+int &ci;
 &i = 0;
 titleloop:
 say_xy("`%آخرین خوک‌چران", 10, 150);
@@ -47,14 +49,12 @@ say_xy("`4خروج", 10, 338);
 say_xy("`9نسخه آزمایشی — موتور آزاد FreeDink", 10, 424);
 wait(1400);
 &i += 1;
-int &go;
 &go = flag_get("title_go");
 if (&go == 1)
 {
  goto startgame;
 }
 //فقط در CI (env PIG_DEMO_STOP) عنوان خودکار رد می‌شود؛ کاربر واقعی: منو می‌ماند
-int &ci;
 &ci = demo_stop();
 if (&ci == 0)
 {
@@ -90,6 +90,14 @@ debug("PIGKEEPER_INGAME");
 //گالری QA (stop>=2): بدون sayloop و دموی باس، مستقیم زنجیره تله‌پورت
 int &dfast;
 &dfast = demo_stop();
+if (&dfast > 99)
+{
+ &dfast = 0;
+}
+if (&dfast == 99)
+{
+ &dfast = 0;
+}
 if (&dfast > 1)
 {
  flag_set("ch1_letter", 1);
