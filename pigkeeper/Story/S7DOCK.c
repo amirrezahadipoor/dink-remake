@@ -20,5 +20,10 @@ preload_seq(231);
 sp_speed(&t, 0);
 sp_script(&t, "s7rauf");
 debug("CH7_RAUF_HERE");
+//S7: فانوس خاموش اسکله (تابلوی تعامل، seq 458)
+preload_seq(458);
+&t = create_sprite(540, 150, 0, 458, 2);
+sp_script(&t, "q7light");
+debug("Q7_LIGHT_HERE");
 kill_this_task();
 }

@@ -35,5 +35,10 @@ sp_script(&t, "s2merc");
 &t = create_sprite(480, 330, 9, 131, 1);
 sp_script(&t, "s2merc");
 debug("CH2_MERCS_SPAWNED");
+//S3: نامه‌رسان ترسو، پشت درخت قایم شده
+preload_seq(231);
+&t = create_sprite(90, 250, 16, 231, 7);
+sp_speed(&t, 0);
+sp_script(&t, "q3mail");
 kill_this_task();
 }

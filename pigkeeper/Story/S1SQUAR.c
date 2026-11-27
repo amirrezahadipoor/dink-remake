@@ -28,5 +28,9 @@ preload_seq(221);
 &t = create_sprite(150, 200, 16, 221, 3);
 sp_speed(&t, 0);
 sp_script(&t, "q1verda");
+//S11: لوح مجسمه قدیمی
+preload_seq(458);
+&t = create_sprite(480, 180, 0, 458, 1);
+sp_script(&t, "q11plq");
 kill_this_task();
 }

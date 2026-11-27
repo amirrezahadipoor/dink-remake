@@ -4,6 +4,14 @@ void main( void )
 {
 int &st;
 debug("CH1_HOUSE_OK");
+//پراپ: شومینه (جزئیات 64 + شعله 86 — مطابق خانه پایه)
+int &p;
+preload_seq(64);
+preload_seq(86);
+&p = create_sprite(308, 120, 0, 64, 5);
+sp_hard(&p, 1);
+&p = create_sprite(309, 114, 7, 86, 1);
+sp_seq(&p, 86);
 &st = flag_get("ch1_fire");
 if (&st == 1)
 {

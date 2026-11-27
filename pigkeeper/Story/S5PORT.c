@@ -18,6 +18,21 @@ preload_seq(241);
 sp_speed(&t, 0);
 sp_script(&t, "q6widow");
 debug("Q6_WIDOW_HERE");
+//S5: چرخ‌دنده دوم، گمشده کنار جرثقیل بندر
+int &q5;
+&q5 = flag_get("q5_gear");
+if (&q5 == 0)
+{
+ preload_seq(66);
+ &t = create_sprite(560, 200, 0, 66, 10);
+ sp_script(&t, "q5gear");
+ sp_touch_damage(&t, -1);
+}
+//S8: بروم در بندر (پیگیری کیف)
+preload_seq(231);
+&t = create_sprite(240, 320, 16, 231, 9);
+sp_speed(&t, 0);
+sp_script(&t, "q8broom");
 //S12: پیرزنِ ساعت شکسته
 preload_seq(221);
 &t = create_sprite(90, 250, 16, 221, 5);
