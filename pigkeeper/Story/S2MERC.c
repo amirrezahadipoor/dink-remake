@@ -33,6 +33,20 @@ playsound(30, 21050, 4000, &current_sprite, 0);
 
 void die( void )
 {
+//M8: هر سومین مزدور یک قلب کوچک می‌اندازد (seq 54 دیتای پایه)
+int &hd;
+&hd = flag_get("drop_rot");
+&hd += 1;
+flag_set("drop_rot", &hd);
+if (&hd >= 3)
+{
+ flag_set("drop_rot", 0);
+ int &hp;
+ &hp = create_sprite(&save_x, &save_y, 0, 54, 1);
+ sp_script(&hp, "heart");
+ sp_touch_damage(&hp, -1);
+ sp_kill(&hp, 14000);
+}
 int &left;
 &left = flag_get("ch2_kills");
 &left += 1;

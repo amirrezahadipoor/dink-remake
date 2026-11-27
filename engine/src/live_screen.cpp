@@ -386,12 +386,17 @@ unsigned char get_hard(int x1, int y1, int screenlock)
     return(/*false*/0);
 }
 
+extern Uint32 remake_flash_until[300];
 void draw_sprite_game(IOGfxSurface *GFX_lpdest, int h)
 {
   if (spr[h].brain == 8)
     return; // text
   if (spr[h].nodraw == 1)
     return; // invisible
+  /* Remake (M1): فلیکر ضربه — ۱۳۰ms چشمک با فرکانس ~۳۰Hz */
+  if (h > 0 && h < 300 && game_GetTicks() < remake_flash_until[h]
+      && ((game_GetTicks() / 35) & 1))
+    return;
 
   rect box_crap,box_real;
 

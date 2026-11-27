@@ -295,6 +295,39 @@ void human_brain(int h)
     {
       if (spr[h].base_hit > 0)
 	{
+	  /* Remake (M10): نشانه‌گیری کمکی ملایم (فقط لمس) — نزدیک‌ترین دشمن
+	     در شعاع ۹۵px؛ اگر تقریباً رو به او نیستیم، جهت را اصلاح کن */
+	  {
+	    extern int remake_touch_is_on(void);
+	    if (remake_touch_is_on())
+	      {
+		int best = 0, bestd = 95 * 95;
+		for (int i = 1; i <= last_sprite_created; i++)
+		  {
+		    if (!spr[i].active || i == h) continue;
+		    if (spr[i].brain != 9 && spr[i].brain != 10) continue;
+		    if (spr[i].nohit) continue;
+		    int dx = spr[i].x - spr[h].x, dy = spr[i].y - spr[h].y;
+		    int d2 = dx * dx + dy * dy;
+		    if (d2 < bestd) { bestd = d2; best = i; }
+		  }
+		if (best)
+		  {
+		    int dx = spr[best].x - spr[h].x, dy = spr[best].y - spr[h].y;
+		    int adx = dx < 0 ? -dx : dx, ady = dy < 0 ? -dy : dy;
+		    int want;
+		    if (adx > ady * 2)      want = dx > 0 ? 6 : 4;
+		    else if (ady > adx * 2) want = dy > 0 ? 2 : 8;
+		    else if (dx > 0)        want = dy > 0 ? 3 : 9;
+		    else                    want = dy > 0 ? 1 : 7;
+		    if (spr[h].dir != want)
+		      {
+			spr[h].dir = want;
+			log_debug("AIM_ASSIST dir %d -> enemy %d", want, best);
+		      }
+		  }
+	      }
+	  }
 	  if (locate(weapon_script, "USE"))
 	    run_script(weapon_script);
 	  goto b1end;

@@ -332,6 +332,10 @@ static int touch_in_move_zone(float x) {
 
 /* 3-8: haptic feedback (Android vibrator via SDL) */
 static void touch_rumble() {
+	extern int remake_set_vibrate;
+	extern void remake_settings_load(void);
+	remake_settings_load();
+	if (!remake_set_vibrate) return;
 	static int tried = 0; static SDL_Haptic* hap = NULL;
 	if (!tried) {
 		tried = 1;
@@ -345,6 +349,10 @@ static void touch_rumble() {
 	if (hap != NULL) SDL_HapticRumblePlay(hap, 0.45f, 30);
 }
 
+int remake_touch_is_on(void) {
+	const char* e = getenv("FREEDINK_TOUCH");
+	return (SDL_GetNumTouchDevices() > 0) || (e != NULL && strcmp(e, "1") == 0);
+}
 static void remake_touch_poll() {
 	if (!g_touch.checked) {
 		const char* e = getenv("FREEDINK_TOUCH");
@@ -651,6 +659,12 @@ void updateFrame() {
 			goto past;
 
 		//brains - predefined bahavior patterns available to any sprite
+		/* Remake (M1): هیت‌استاپ ~۴۵ms — همه مغزها جز متن/اشاره‌گر یخ */
+		{
+			extern Uint32 remake_hitstop_until;
+			if (thisTickCount < remake_hitstop_until && spr[h].brain != 8 && spr[h].brain != 13)
+				goto animate;
+		}
 		if (spr[h].brain == 1) {
 			run_through_touch_damage_list(h);
 			if (process_warp == 0)

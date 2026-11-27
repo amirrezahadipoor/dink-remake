@@ -319,6 +319,13 @@ void dc_sp_hard(int script, int* yield, int* preturnint, int sprite, int sparg)
 void dc_sp_hitpoints(int script, int* yield, int* preturnint, int sprite, int sparg)
 {
   RETURN_NEG_IF_BAD_SPRITE(sprite);
+  /* B5: درجه سختی روی دشمن‌ها (brain 9/10)؛ جدول پایه دست‌نخورده */
+  extern int remake_diff_enemy_hp(int);
+  if (sparg > 0 && sprite != 1 && (spr[sprite].brain == 9 || spr[sprite].brain == 10)) {
+    int adj = remake_diff_enemy_hp(sparg);
+    if (adj != sparg) log_debug("DIFF_HP %d->%d", sparg, adj);
+    sparg = adj;
+  }
   *preturnint = change_sprite(sprite, sparg, &spr[sprite].hitpoints);
 }
 
@@ -444,6 +451,9 @@ void dc_sp_speed(int script, int* yield, int* preturnint, int sprite, int sparg)
 
 void dc_sp_strength(int script, int* yield, int* preturnint, int sprite, int sparg)
 {
+  extern int remake_diff_enemy_dmg(int);
+  if (sparg > 0 && sprite != 1 && (spr[sprite].brain == 9 || spr[sprite].brain == 10))
+    sparg = remake_diff_enemy_dmg(sparg);
   RETURN_NEG_IF_BAD_SPRITE(sprite);
   *preturnint = change_sprite(sprite, sparg, &spr[sprite].strength);
 }
@@ -462,6 +472,9 @@ void dc_sp_timing(int script, int* yield, int* preturnint, int sprite, int sparg
 
 void dc_sp_touch_damage(int script, int* yield, int* preturnint, int sprite, int sparg)
 {
+  extern int remake_diff_enemy_dmg(int);
+  if (sparg > 0 && sprite != 1 && (spr[sprite].brain == 9 || spr[sprite].brain == 10))
+    sparg = remake_diff_enemy_dmg(sparg);
   RETURN_NEG_IF_BAD_SPRITE(sprite);
   *preturnint = change_sprite_noreturn(sprite, sparg, &spr[sprite].touch_damage);
 }
@@ -1258,6 +1271,10 @@ void dc_run_script_by_number(int script, int* yield, int* preturnint,
 void dc_playmidi(int script, int* yield, int* preturnint,
 		 char* midi_file)
 {
+  extern int remake_set_music;
+  extern void remake_settings_load(void);
+  remake_settings_load();
+  if (!remake_set_music) { log_debug("MUSIC_OFF: skip %s", midi_file); return; }
   //StopMidi();
   int regm = atol(midi_file);
   log_debug("Processing playmidi command.");
@@ -1567,6 +1584,66 @@ void dc_scene_tint(int script, int* yield, int* preturnint, int r, int g, int b)
 }
 
 /* Remake (M11): local achievements (flag-backed, zero network) */
+/* Remake (M12/B5): خواندن/نوشتن تنظیمات از DinkC */
+extern int remake_set_sound, remake_set_music, remake_set_vibrate,
+           remake_set_shake, remake_set_dmgnum, remake_set_difficulty;
+extern void remake_settings_load(void);
+extern void remake_settings_save(void);
+static int* remake_setting_ptr(const char* name) {
+  if (strcmp(name, "sound") == 0) return &remake_set_sound;
+  if (strcmp(name, "music") == 0) return &remake_set_music;
+  if (strcmp(name, "vibrate") == 0) return &remake_set_vibrate;
+  if (strcmp(name, "shake") == 0) return &remake_set_shake;
+  if (strcmp(name, "dmgnum") == 0) return &remake_set_dmgnum;
+  if (strcmp(name, "difficulty") == 0) return &remake_set_difficulty;
+  return NULL;
+}
+void dc_setting_set(int script, int* yield, int* preturnint, char* name, int val)
+{
+  remake_settings_load();
+  int* p = remake_setting_ptr(name);
+  if (p == NULL) { log_error("setting_set: unknown '%s'", name); return; }
+  *p = val;
+  remake_settings_save();
+  log_info("SETTING_SET %s=%d", name, val);
+}
+void dc_setting_get(int script, int* yield, int* preturnint, char* name)
+{
+  remake_settings_load();
+  int* p = remake_setting_ptr(name);
+  *preturnint = (p != NULL) ? *p : 0;
+}
+
+/* Remake (M11): فهرست دستاوردهای این اسلات (از g_flags با پیشوند ach_) */
+static int remake_achieve_nth(int idx, std::string* out)
+{
+  int n = 0;
+  for (size_t i = 0; i < g_flags.size(); i++) {
+    if (g_flags[i].value && g_flags[i].name.rfind("ach_", 0) == 0) {
+      if (n == idx) { if (out) *out = g_flags[i].name.substr(4); return 1; }
+      n++;
+    }
+  }
+  return 0;
+}
+void dc_achieve_count(int script, int* yield, int* preturnint)
+{
+  int n = 0;
+  for (size_t i = 0; i < g_flags.size(); i++)
+    if (g_flags[i].value && g_flags[i].name.rfind("ach_", 0) == 0) n++;
+  log_info("ACHIEVE_COUNT %d", n);
+  *preturnint = n;
+}
+void dc_achieve_title(int script, int* yield, int* preturnint, int idx, int x, int y)
+{
+  std::string ti;
+  if (!remake_achieve_nth(idx, &ti)) { *preturnint = 0; return; }
+  char buf[240];
+  snprintf(buf, sizeof(buf), "`%%★ %s", ti.c_str());
+  int sp = say_text_xy(buf, x, y, script);
+  *preturnint = sp;
+}
+
 void dc_achieve(int script, int* yield, int* preturnint, char* title)
 {
   char* buf = latin1_to_utf8(title);
@@ -2583,6 +2660,10 @@ void dinkc_bindings_init()
       DCBD_ADD(math_mod,                 {1,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
       DCBD_ADD(make_global_function,     {2,2,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
       DCBD_ADD(set_save_game_info,       {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+      DCBD_ADD(setting_set,              {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+      DCBD_ADD(setting_get,              {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+      DCBD_ADD(achieve_count,            {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+      DCBD_ADD(achieve_title,            {1,1,1,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
       DCBD_ADD(load_map,                 {2,2,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
       DCBD_ADD(load_tile,                {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
       DCBD_ADD(map_tile,                 {1,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 1, -1);

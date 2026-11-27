@@ -612,6 +612,10 @@ void EditorSoundPlayEffect(int sound)
  **/
 int SoundPlayEffect(int sound, int min, int plus, int sound3d, /*bool*/int repeat)
 {
+  extern int remake_set_sound;
+  extern void remake_settings_load(void);
+  remake_settings_load();
+  if (!remake_set_sound) return 0;
   return SoundPlayEffectChannel(sound, min, plus, sound3d, repeat, -1);
 }
 /**

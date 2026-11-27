@@ -145,6 +145,10 @@ int remake_cinema_on = 0;   /* M13: letterbox bars */
 int remake_shake_mag = 0;
 Uint32 remake_shake_until = 0;
 void remake_screen_shake(int ms, int mag) {
+	extern int remake_set_shake;
+	extern void remake_settings_load(void);
+	remake_settings_load();
+	if (!remake_set_shake) return;
 	remake_shake_until = SDL_GetTicks() + (Uint32)ms;
 	remake_shake_mag = mag;
 }

@@ -203,6 +203,13 @@ jobs:
           grep -q "Q10_SET" pigkeeper.log
           grep -q "TAV_PROPS" pigkeeper.log
           grep -q "Q7_LIGHT_HERE" pigkeeper.log
+          # M12/B5/M11 — API های تنظیمات/سختی/دستاورد (QAAPIS در انتهای زنجیره)
+          grep -q "QA_SETTINGS_OK" pigkeeper.log
+          grep -q "SETTING_SET difficulty=2" pigkeeper.log
+          grep -q "SETTINGS_SAVED" pigkeeper.log
+          grep -q "DIFF_HP 22->28" pigkeeper.log
+          grep -q "ACHIEVE_COUNT" pigkeeper.log
+          grep -q "QA_APIS_DONE" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
           echo "::group::NOTANIM diag"; grep -aiE "seq|\.ff|couldn|miss" pigkeeper.log | head -20; echo "::endgroup::"

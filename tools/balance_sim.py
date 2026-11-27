@@ -91,9 +91,31 @@ def main():
         print(f"ECON پرده {act}: درآمد تجمعی {have} / ضروری {need_c[act]} {'OK' if ok else '*** GRIND ***'}")
         if not ok: fails.append(f"B3 act {act}")
 
+    # --- B6: ماتریس بیلد — مشت‌خالی vs شمشیر کهنه (تنها سلاح‌های داستان) ---
+    # شمشیر کهنه (Q2): +۲ ضربه. قانون: هر باس با شمشیر در لول توصیه OK؛ با مشت در rec+1 ≤ ۶۰s
+    SWORD = 2
+    for e in enemies:
+        if not e['rec']: continue
+        eff_s = max(1, pdmg(e['rec']) + SWORD - e['df'])
+        t_s = e['hp'] / (eff_s * HITS_PER_SEC)
+        eff_f = max(1, pdmg(e['rec'] + 1) - e['df'])
+        t_f = e['hp'] / (eff_f * HITS_PER_SEC)
+        ok = t_s <= BOSS_MAX and t_f <= 60
+        print(f"B6 {e['name']}: sword@L{e['rec']}={t_s:.1f}s fists@L{e['rec']+1}={t_f:.1f}s {'OK' if ok else '*** FAIL ***'}")
+        if not ok: fails.append(f"B6 {e['name']}")
+    # --- B5: درجه‌های سختی — آسان قابل‌بازی‌تر، سخت هنوز ممکن ---
+    for e in enemies:
+        if not e['rec']: continue
+        hp_e, hp_h = e['hp'] * 8 // 10, e['hp'] * 13 // 10
+        t_e = hp_e / (max(1, pdmg(e['rec']) - e['df']) * HITS_PER_SEC)
+        t_h = hp_h / (max(1, pdmg(e['rec']) - e['df']) * HITS_PER_SEC)
+        ok = t_e >= BOSS_MIN * 0.6 and t_h <= BOSS_MAX * 1.5
+        print(f"B5 {e['name']}: easy={t_e:.1f}s hard={t_h:.1f}s {'OK' if ok else '*** FAIL ***'}")
+        if not ok: fails.append(f"B5 {e['name']}")
+
     if fails:
         print("BALANCE FAIL:", "; ".join(fails)); return 1
-    print("balance_sim v2 OK"); return 0
+    print("balance_sim v3 OK (B1-B7 tables v2 FINAL — B8 reviewed)"); return 0
 
 if __name__ == '__main__':
     sys.exit(main())

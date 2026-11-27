@@ -116,3 +116,11 @@ N × { uint32 LE offset;  char name[13];  /* nul-terminated */ }
 - تاچ→ماوس SDL (hint TOUCH_MOUSE_EVENTS) **نسبی** است و با تپ دریفت می‌کند؛ برای منوهای اشاره‌گری (brain 13) تپ باید مطلق اعمال شود: نرمال‌شده پنجره → معکوس letterbox (فرمول flipStretch) → sprite اشاره‌گر + `mouse1=1`.
 - حالت‌های CI را با یک env واحد شاخه‌بندی کن (`PIG_DEMO_STOP`: ۰=کاربر/منو می‌ماند، 2..13=فست‌پس گالری، 99=فول‌دمو با پیش‌پرده) — و حواست باشد شاخه‌ها همپوشانی نکنند (باگ fast-path×99).
 - اعلان `int &x;` داخل حلقه DinkC هر دور WARN redeclare می‌دهد — اعلان‌ها قبل از label.
+
+## ۱۷. سیستم تنظیمات/سختی و APIهای بسته M-نهایی
+- تنظیمات ماندگار در شبه‌اسلات ۷۷ (`paths_savegame_fopen(77)`): sound/music/vibrate/shake/dmgnum/difficulty/scaler — `remake_settings_load()` تنبل در هر گیت.
+- گیت‌ها: `SoundPlayEffect` (صدا)، `dc_playmidi` (موسیقی)، `touch_rumble` (ویبره)، `remake_screen_shake` (لرزش)، `draw_damage` (اعداد آسیب + فلیکر ۱۳۰ms + هیت‌استاپ ۴۵ms)، فیلتر GL2 (نرم/تیز).
+- B5: ضرایب فقط در dc_sp_hitpoints/sp_strength/sp_touch_damage و فقط brain9/10 — جدول‌ها و سیو دست‌نخورده؛ **اسکریپت باید brain را قبل از استت‌ها ست کند** (الگوی موجود).
+- DinkC جدید: setting_set(name,v) / setting_get(name) / achieve_count() / achieve_title(i,x,y).
+- M10: چرخش خودکار جهت حمله به نزدیک‌ترین brain9/10 در ۹۵px — فقط در حالت لمس (remake_touch_is_on).
+- دیسپچر DinkC char*+int = امضای {2,1,...} ✓ (setting_set اثباتش کرد).

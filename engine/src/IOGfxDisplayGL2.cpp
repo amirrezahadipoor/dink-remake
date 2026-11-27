@@ -520,7 +520,10 @@ void IOGfxDisplayGL2::flip(IOGfxSurface* backbuffer, SDL_Rect* dstrect,
 	gl->BindTexture(GL_TEXTURE_2D, texture);
 	// GL_LINEAR's slight blur is closer to 90's CRT monitors
 	// GL_NEAREST is clean-pixellated and harder on the eyes
-	if (truecolor && interpolation) {
+	extern int remake_set_scaler; /* M15: 0=نرم(LINEAR) 1=تیز(NEAREST) */
+	extern void remake_settings_load(void);
+	remake_settings_load();
+	if (truecolor && interpolation && !remake_set_scaler) {
 		gl->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		gl->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	} else {

@@ -354,8 +354,18 @@ void process_move(int h)
 	}
 }
 
+/* Remake (M1): فلیکر سفید قربانی + هیت‌استاپ کوتاه */
+Uint32 remake_flash_until[300];
+Uint32 remake_hitstop_until = 0;
+extern int remake_set_dmgnum;
+extern void remake_settings_load(void);
+
 void draw_damage(int h)
 {
+	remake_settings_load();
+	if (h > 0 && h < 300) remake_flash_until[h] = game_GetTicks() + 130;
+	remake_hitstop_until = game_GetTicks() + 45;
+	if (!remake_set_dmgnum) return;
 	int crap2 = add_sprite(spr[h].x,spr[h].y,8,0,0);
 	
 	spr[crap2].y -= k[seq[spr[h].pseq].frame[spr[h].pframe]].yoffset;

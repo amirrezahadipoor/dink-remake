@@ -224,6 +224,58 @@ void game_set_normal_speed()
 }
 
 
+/* ===== Remake (M12/B5): تنظیمات ماندگار + درجه سختی ===== */
+#include "paths.h"
+int remake_set_sound = 1, remake_set_music = 1, remake_set_vibrate = 1;
+int remake_set_shake = 1, remake_set_dmgnum = 1;
+int remake_set_difficulty = 1; /* 0=آسان 1=عادی 2=سخت */
+static int remake_settings_loaded = 0;
+
+static FILE* remake_settings_f(const char* mode) {
+  return paths_savegame_fopen(77, mode); /* slot 77 = settings pseudo-slot */
+}
+void remake_settings_load(void) {
+  if (remake_settings_loaded) return;
+  remake_settings_loaded = 1;
+  FILE* f = remake_settings_f("rb");
+  if (f == NULL) return;
+  char k[32]; int v;
+  while (fscanf(f, "%31[^=]=%d\n", k, &v) == 2) {
+    if (strcmp(k, "sound") == 0) remake_set_sound = v;
+    else if (strcmp(k, "music") == 0) remake_set_music = v;
+    else if (strcmp(k, "vibrate") == 0) remake_set_vibrate = v;
+    else if (strcmp(k, "shake") == 0) remake_set_shake = v;
+    else if (strcmp(k, "dmgnum") == 0) remake_set_dmgnum = v;
+    else if (strcmp(k, "difficulty") == 0) remake_set_difficulty = v;
+  }
+  fclose(f);
+  log_info("SETTINGS_LOADED snd%d mus%d vib%d shk%d dmg%d dif%d",
+           remake_set_sound, remake_set_music, remake_set_vibrate,
+           remake_set_shake, remake_set_dmgnum, remake_set_difficulty);
+}
+void remake_settings_save(void) {
+  FILE* f = remake_settings_f("wb");
+  if (f == NULL) { log_error("SETTINGS_SAVE_FAIL"); return; }
+  fprintf(f, "sound=%d\nmusic=%d\nvibrate=%d\nshake=%d\ndmgnum=%d\ndifficulty=%d\n",
+          remake_set_sound, remake_set_music, remake_set_vibrate,
+          remake_set_shake, remake_set_dmgnum, remake_set_difficulty);
+  fclose(f);
+  log_info("SETTINGS_SAVED dif%d", remake_set_difficulty);
+}
+/* B5: ضرایب سختی — جدول پایه دست نمی‌خورد */
+int remake_diff_enemy_hp(int hp) {
+  remake_settings_load();
+  if (remake_set_difficulty == 0) return hp * 8 / 10;
+  if (remake_set_difficulty == 2) return hp * 13 / 10;
+  return hp;
+}
+int remake_diff_enemy_dmg(int d) {
+  remake_settings_load();
+  if (remake_set_difficulty == 0) return (d * 7 + 9) / 10;
+  if (remake_set_difficulty == 2) return d * 14 / 10;
+  return d;
+}
+
 int next_raise(void)
 {
   int crap = *plevel;

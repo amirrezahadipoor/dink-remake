@@ -10,7 +10,12 @@ menu:
 ـــ توقف ـــ
         title_end();
         "ادامه بازی"
+        "دفترچه مأموریت‌ها"
+        "ذخیره بازی"
         "بارگذاری سیو"
+        "سفر سریع (نقشه ناحیه)"
+        "دستاوردها"
+        "تنظیمات"
         "شروع دوباره از اول"
         "خروج از بازی"
         choice_end();
@@ -22,6 +27,36 @@ if (&result == 1)
 }
 
 if (&result == 2)
+{
+ unfreeze(1);
+ spawn("journalm");
+ kill_this_task();
+}
+if (&result == 3)
+{
+ unfreeze(1);
+ spawn("savemenu");
+ kill_this_task();
+}
+if (&result == 5)
+{
+ unfreeze(1);
+ spawn("fasttrav");
+ kill_this_task();
+}
+if (&result == 6)
+{
+ unfreeze(1);
+ spawn("achlist");
+ kill_this_task();
+}
+if (&result == 7)
+{
+ unfreeze(1);
+ spawn("settings");
+ kill_this_task();
+}
+if (&result == 4)
 {
         choice_start();
         "&savegameinfo"
@@ -68,7 +103,7 @@ init("load_sequence_now graphics\dink\hit\normal\ds-h8- 108 75 61 71 -19 -10 19 
  kill_this_task();
 }
 
-if (&result == 3)
+if (&result == 8)
 {
         choice_start();
         "آره، از اول شروع کن"
@@ -82,7 +117,7 @@ if (&result == 3)
  kill_this_task();
 }
 
-if (&result == 4)
+if (&result == 9)
 {
         choice_start();
         "آره، خارج شو"
