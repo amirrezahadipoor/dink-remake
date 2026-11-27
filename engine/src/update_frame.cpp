@@ -61,6 +61,7 @@
 
 /* For printing strings in process_talk */
 #include "gfx_fonts.h"
+#include <vector> /* remake: touch overlay TextCommands */
 
 static unsigned long mold;
 
@@ -69,8 +70,13 @@ static unsigned long mold;
 /* TODO INPUT: group all input checks here, and switch to events
    processing rather than keystate parsing for 'justpressed' events
    (to avoid having to maintain a fake keyboard state in input.c) */
+static void remake_touch_poll();  /* remake (3-7), defined below */
+static void remake_touch_apply();
+
 void check_joystick()
 {
+  remake_touch_poll(); /* remake (3-7): sample finger state once per frame */
+
   /* Clean-up */
   /* Actions */
   {
@@ -123,6 +129,9 @@ void check_joystick()
   if (input_getscancodestate(SDL_SCANCODE_6)) sjoy.joybit[ACTION_MAP] = 1;
   if (input_getcharstate(SDLK_m)) sjoy.joybit[ACTION_MAP] = 1;
   if (input_getscancodestate(SDL_SCANCODE_7)) sjoy.joybit[ACTION_BUTTON7] = 1;
+
+  /* Remake (3-7): merge touch controls into the same action bits */
+  remake_touch_apply();
   
   {
     int a = ACTION_FIRST;
@@ -265,6 +274,110 @@ static void remake_clock_and_night() {
 		g_display->brightness = 256;
 		log_info("NIGHT_DIM_OFF (hour %d)", hour);
 		night_applied = 0;
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/* Remake (3-7): touch controls v1 — virtual joystick (left zone) +   */
+/* action buttons (right cluster). Polled from SDL finger state, so   */
+/* no event plumbing; auto-enabled when a touch device exists.        */
+/* ------------------------------------------------------------------ */
+static struct RTouch {
+	int checked, on;
+	int r, l, u, d, atk, talk, mag, inv, menu;
+	int jdown; float ox, oy, jx, jy;
+	int lastmask;
+} g_touch;
+
+static int touch_hit(float x, float y, float cx, float cy, float rad) {
+	float dx = (x - cx), dy = (y - cy) * 0.75f; /* 4:3 aspect comp */
+	return dx*dx + dy*dy <= rad*rad;
+}
+
+static void remake_touch_poll() {
+	if (!g_touch.checked) {
+		const char* e = getenv("FREEDINK_TOUCH");
+		g_touch.on = (SDL_GetNumTouchDevices() > 0) ||
+		             (e != NULL && strcmp(e, "1") == 0);
+		g_touch.checked = 1;
+		if (g_touch.on) log_info("TOUCH_CONTROLS_ON");
+	}
+	if (!g_touch.on) return;
+	g_touch.r = g_touch.l = g_touch.u = g_touch.d = 0;
+	g_touch.atk = g_touch.talk = g_touch.mag = g_touch.inv = g_touch.menu = 0;
+	if (mode < 2) { g_touch.jdown = 0; return; } /* title: taps stay mouse */
+	if (SDL_GetNumTouchDevices() <= 0) return;
+	SDL_TouchID dev = SDL_GetTouchDevice(0);
+	int n = SDL_GetNumTouchFingers(dev);
+	int saw_joy = 0;
+	for (int i = 0; i < n; i++) {
+		SDL_Finger* f = SDL_GetTouchFinger(dev, i);
+		if (f == NULL) continue;
+		float x = f->x, y = f->y;
+		if (x < 0.45f) { /* movement zone */
+			if (!g_touch.jdown) { g_touch.jdown = 1; g_touch.ox = x; g_touch.oy = y; }
+			saw_joy = 1; g_touch.jx = x; g_touch.jy = y;
+			float dx = x - g_touch.ox, dy = y - g_touch.oy;
+			const float dead = 0.025f;
+			if (dx >  dead) g_touch.r = 1;
+			if (dx < -dead) g_touch.l = 1;
+			if (dy >  dead) g_touch.d = 1;
+			if (dy < -dead) g_touch.u = 1;
+		} else {
+			if (touch_hit(x, y, 0.875f, 0.78f, 0.100f)) g_touch.atk  = 1;
+			if (touch_hit(x, y, 0.720f, 0.88f, 0.080f)) g_touch.mag  = 1;
+			if (touch_hit(x, y, 0.720f, 0.60f, 0.080f)) g_touch.talk = 1;
+			if (touch_hit(x, y, 0.575f, 0.74f, 0.070f)) g_touch.inv  = 1;
+			if (touch_hit(x, y, 0.955f, 0.06f, 0.060f)) g_touch.menu = 1;
+		}
+	}
+	if (!saw_joy) g_touch.jdown = 0;
+	int mask = g_touch.r | g_touch.l<<1 | g_touch.u<<2 | g_touch.d<<3 |
+	           g_touch.atk<<4 | g_touch.talk<<5 | g_touch.mag<<6 |
+	           g_touch.inv<<7 | g_touch.menu<<8;
+	if (mask != g_touch.lastmask) {
+		log_info("TOUCH_STATE mv[r%d l%d u%d d%d] atk%d talk%d mag%d inv%d menu%d",
+		         g_touch.r, g_touch.l, g_touch.u, g_touch.d,
+		         g_touch.atk, g_touch.talk, g_touch.mag, g_touch.inv, g_touch.menu);
+		g_touch.lastmask = mask;
+	}
+}
+
+static void remake_touch_apply() {
+	if (!g_touch.on || mode < 2) return;
+	if (g_touch.r)    sjoy.joybit[ACTION_RIGHT] = 1;
+	if (g_touch.l)    sjoy.joybit[ACTION_LEFT] = 1;
+	if (g_touch.u)    sjoy.joybit[ACTION_UP] = 1;
+	if (g_touch.d)    sjoy.joybit[ACTION_DOWN] = 1;
+	if (g_touch.atk)  sjoy.joybit[ACTION_ATTACK] = 1;
+	if (g_touch.talk) sjoy.joybit[ACTION_TALK] = 1;
+	if (g_touch.mag)  sjoy.joybit[ACTION_MAGIC] = 1;
+	if (g_touch.inv)  sjoy.joybit[ACTION_INVENTORY] = 1;
+	if (g_touch.menu) sjoy.joybit[ACTION_MENU] = 1;
+}
+
+/* HUD labels for the touch zones, drawn right before flip (Persian,
+   dialog font => shaped + anti-aliased). Called from AppFreeDink. */
+void remake_touch_overlay_render() {
+	if (!g_touch.on || mode < 2)
+		return;
+	struct { const char* txt; int x; int y; } L[] = {
+		{"حمله", 560, 362}, {"جادو", 461, 410}, {"گفتگو", 461, 276},
+		{"آیتم", 368, 343}, {"منو", 611, 17},
+	};
+	FONTS_SetTextColor(235, 235, 235);
+	for (unsigned i = 0; i < sizeof(L)/sizeof(L[0]); i++) {
+		std::vector<TextCommand> cmds;
+		rect r = {L[i].x - 70, L[i].y, L[i].x + 70, L[i].y + 30};
+		print_text_wrap_getcmds((char*)L[i].txt, &r, 1, 0, FONT_DIALOG, &cmds);
+		print_text_cmds(&cmds);
+	}
+	if (g_touch.jdown) {
+		std::vector<TextCommand> cmds;
+		int jx = (int)(g_touch.jx * 640), jy = (int)(g_touch.jy * 480);
+		rect r = {jx - 20, jy - 10, jx + 20, jy + 20};
+		print_text_wrap_getcmds((char*)"+", &r, 1, 0, FONT_DIALOG, &cmds);
+		print_text_cmds(&cmds);
 	}
 }
 

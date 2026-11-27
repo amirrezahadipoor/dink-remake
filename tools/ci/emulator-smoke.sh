@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Emulator boot-proof for the Pigkeeper APK (runs inside android-emulator-runner).
+# Emulator boot + touch E2E proof for the Pigkeeper APK.
+# The emulator APK embeds the CI autostart script -> reaches gameplay alone.
 set -e
 
 adb logcat -G 16M || true
@@ -22,15 +23,27 @@ if [ -z "$APPPID" ]; then
   grep -aE "pigkeeper|FATAL|AndroidRuntime" logcat.txt | tail -30 || true
   exit 1
 fi
-
-# keep engine logs out of chatty's dedup
 adb logcat -P "$APPPID" || true
-sleep 90
+
+# boot (~8s) + CI autostart fires at +15s -> wait well into gameplay
+sleep 45
+
+# ---- touch E2E: swipe in move zone, tap attack & talk zones ----
+SIZE=$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1)
+W=${SIZE%x*}; H=${SIZE#*x}
+echo "screen: ${W}x${H}"
+adb shell input swipe $((W*18/100)) $((H*55/100)) $((W*33/100)) $((H*55/100)) 900
+sleep 2
+adb shell input tap $((W*875/1000)) $((H*78/100))   # حمله
+sleep 2
+adb shell input tap $((W*72/100)) $((H*60/100))     # گفتگو
+sleep 3
 
 adb logcat -d > logcat.txt || true
 adb exec-out screencap -p > emu_boot.png || true
-echo "--- pigkeeper:";      grep -a "I pigkeeper" logcat.txt | head -6 || true
-echo "--- engine(SDL/APP):"; grep -a "SDL/APP" logcat.txt | head -20 || true
+echo "--- pigkeeper:";       grep -a "I pigkeeper" logcat.txt | head -6 || true
+echo "--- engine(SDL/APP):"; grep -a "SDL/APP" logcat.txt | head -12 || true
+echo "--- touch:";           grep -a "TOUCH_" logcat.txt | head -12 || true
 
 # ===== strict asserts =====
 grep -aq "Extracting game data" logcat.txt
@@ -39,8 +52,13 @@ grep -aq "SDL/APP" logcat.txt
 ! grep -aq "FATAL EXCEPTION" logcat.txt
 ! grep -aq "UnsatisfiedLinkError" logcat.txt
 grep -aq "refdir" logcat.txt || grep -aq "AAudioStream" logcat.txt
+# گیم‌پلی واقعی (autostart داخل APK امولاتور)
+grep -aq "CI_AUTOSTART_OK" logcat.txt
+# لمس: فعال شده و حداقل یک تغییر state ثبت شده
+grep -aq "TOUCH_CONTROLS_ON" logcat.txt
+grep -aq "TOUCH_STATE" logcat.txt
 
 APPPID2=$(adb shell pidof ir.pigkeeper.dink | tr -d '\r')
 echo "app pid after soak: $APPPID2"
 test -n "$APPPID2"
-echo "emulator boot checks passed ✓"
+echo "emulator boot+touch checks passed ✓"

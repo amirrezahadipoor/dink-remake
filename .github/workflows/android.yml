@@ -146,9 +146,11 @@ jobs:
           cp sdl-src/SDL2-$SDL_VER/android-project/app/src/main/java/org/libsdl/app/*.java \
              android-project/app/src/main/java/org/libsdl/app/
 
-      - name: Fetch game data + build assets
+      - name: Fetch game data + build assets (with CI autostart for E2E)
         run: |
           sh fetch-data.sh
+          # فقط برای تست امولاتور: ورود خودکار به گیم‌پلی (APK کاربر دست‌نخورده می‌ماند)
+          sh tools/ci/autostart-patch.sh
           A=android-project/app/src/main/assets/freedink-data
           mkdir -p "$A"
           cp -r gamedata/dink "$A/dink"
