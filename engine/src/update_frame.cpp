@@ -306,10 +306,14 @@ static void remake_touch_poll() {
 	g_touch.r = g_touch.l = g_touch.u = g_touch.d = 0;
 	g_touch.atk = g_touch.talk = g_touch.mag = g_touch.inv = g_touch.menu = 0;
 	if (mode < 2) { g_touch.jdown = 0; return; } /* title: taps stay mouse */
-	if (SDL_GetNumTouchDevices() <= 0) return;
-	SDL_TouchID dev = SDL_GetTouchDevice(0);
-	int n = SDL_GetNumTouchFingers(dev);
+	int ndev = SDL_GetNumTouchDevices();
+	if (ndev <= 0) return;
 	int saw_joy = 0;
+	/* iterate ALL touch devices — injected/virtual touches (adb input)
+	   register as a separate SDL touch device */
+	for (int di = 0; di < ndev; di++) {
+	SDL_TouchID dev = SDL_GetTouchDevice(di);
+	int n = SDL_GetNumTouchFingers(dev);
 	for (int i = 0; i < n; i++) {
 		SDL_Finger* f = SDL_GetTouchFinger(dev, i);
 		if (f == NULL) continue;
@@ -331,6 +335,7 @@ static void remake_touch_poll() {
 			if (touch_hit(x, y, 0.955f, 0.06f, 0.060f)) g_touch.menu = 1;
 		}
 	}
+	} /* device loop */
 	if (!saw_joy) g_touch.jdown = 0;
 	int mask = g_touch.r | g_touch.l<<1 | g_touch.u<<2 | g_touch.d<<3 |
 	           g_touch.atk<<4 | g_touch.talk<<5 | g_touch.mag<<6 |
