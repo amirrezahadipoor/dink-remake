@@ -22,5 +22,11 @@ if (&st == 0)
   say_xy("`7وردا (از دور): بعدازظهرها مزاحمم نشو، بچه.", 110, 70);
  }
 }
+//S1: وردا و خسارت گل‌ها (کوئست فرعی)
+int &t;
+preload_seq(221);
+&t = create_sprite(150, 200, 16, 221, 3);
+sp_speed(&t, 0);
+sp_script(&t, "q1verda");
 kill_this_task();
 }

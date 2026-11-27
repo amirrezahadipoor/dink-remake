@@ -7,5 +7,6 @@ sp_y(1, 300);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_TOP");
+spawn("citele13");
 kill_this_task();
 }
