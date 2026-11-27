@@ -65,10 +65,8 @@
 #ifndef _GL_UNUSED
 # define _GL_UNUSED __attribute__((__unused__))
 #endif
-#ifndef _Noreturn
-# if defined __cplusplus
-#  define _Noreturn [[noreturn]]
-# endif
+#if defined __cplusplus && !defined _Noreturn
+# define _Noreturn __attribute__((__noreturn__))
 #endif
 
 #endif
