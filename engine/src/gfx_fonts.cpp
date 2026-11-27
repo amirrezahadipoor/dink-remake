@@ -395,7 +395,8 @@ static Uint32 mirror_bracket(Uint32 c) {
 	switch (c) { case '(': return ')'; case ')': return '(';
 	case '[': return ']'; case ']': return '[';
 	case '{': return '}'; case '}': return '{';
-	case '<': return '>'; case '>': return '<'; }
+	case '<': return '>'; case '>': return '<';
+	case 0x00AB: return 0x00BB; case 0x00BB: return 0x00AB; }
 	return c;
 }
 

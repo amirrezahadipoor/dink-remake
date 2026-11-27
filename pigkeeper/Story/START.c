@@ -14,7 +14,6 @@ sp_pframe(1,8);
 sp_que(1,20000);
 sp_noclip(1, 1);
 
-&crap = create_sprite(320,240, 0, 196, 1);
 
 debug("PIGKEEPER_BOOT_OK");
 playmidi("1003.mid");
