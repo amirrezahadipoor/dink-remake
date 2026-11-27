@@ -22,14 +22,15 @@ debug("CH11_LIA_REVEAL");
 achieve("شماره‌ی یک");
 cinema(0);
 say_frame(0);
-//منوی انتخاب پایان — دکمه‌های لمسی/کلیکی
+//منوی انتخاب پایان — دکمه‌های لمسی/کلیکی (هم‌تراز با چیدمان جدید)
+say_frame(1);
 clear_buttons();
 button_script("end1");
-make_button(60, 150, 580, 185, 0);
+make_button(40, 146, 600, 196, 0);
 button_script("end2");
-make_button(60, 195, 580, 230, 0);
+make_button(40, 204, 600, 254, 0);
 button_script("end3");
-make_button(60, 240, 580, 275, 0);
+make_button(40, 262, 600, 312, 0);
 debug("CH11_CHOICE_READY");
 spawn("s11menu");
 kill_this_task();
