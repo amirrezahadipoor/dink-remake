@@ -46,6 +46,16 @@ if (&st == 0)
  say_xy("`$گوبر: دینک! تیلی باز فرار کرد! تو مزرعه‌ست!", 20, 40);
 }
 
+//درخت‌های صحنه (seq 32 — preload لازم برای نمایش)
+preload_seq(32);
+preload_seq(43);
+&t = create_sprite(120, 160, 0, 32, 3);
+sp_hard(&t, 1);
+&t = create_sprite(560, 150, 0, 32, 5);
+sp_hard(&t, 1);
+&t = create_sprite(90, 380, 0, 32, 1);
+sp_hard(&t, 1);
+
 //تیلی — خوک فراری (brain 4 = خوک، seq 43)
 &t = create_sprite(470, 240, 4, 43, 1);
 sp_base_walk(&t, 40);
