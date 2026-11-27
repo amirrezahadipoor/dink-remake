@@ -1,7 +1,13 @@
 //صحنه مارا (پس از باس) — spawn شده
 void main( void )
 {
-wait(500);
+//کارهای حیاتی قبل از هر wait (ایشوی callback — docs/ENGINE §۱۰)
+flag_set("ch2_mara_met", 1);
+journal_done("از جنگل غرب عبور کن");
+journal_done("با مارا حرف بزن");
+journal_add("همراه مارا به سالت‌مور برو");
+achieve("شفاگر فراری");
+debug("CH2_MARA_MET");
 cinema(1);
 say_xy("`%زنی با کوله گیاه، خم شده روی رد پاها...", 110, 60);
 wait(2400);
@@ -13,12 +19,6 @@ say_xy("`%مارا: جعبه؟ ...نشونم بده. (مکث) این مُهر ر
 wait(3000);
 say_xy("`%مارا: اسمش فرقه‌ی خاکستره. تنها نمی‌رسی سالت‌مور.", 80, 60);
 wait(2800);
-flag_set("ch2_mara_met", 1);
-journal_done("از جنگل غرب عبور کن");
-journal_done("با مارا حرف بزن");
-journal_add("همراه مارا به سالت‌مور برو");
-achieve("شفاگر فراری");
-debug("CH2_MARA_MET");
 cinema(0);
 say_xy("`%— پایان دموی پرده ۱ —", 200, 230);
 kill_this_task();
