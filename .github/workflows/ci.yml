@@ -211,7 +211,7 @@ jobs:
           export SDL_AUDIODRIVER=dummy
           export FREEDINK_FONT="$PWD/fonts/Vazirmatn-Regular.ttf"
           export DISPLAY=:99
-          for STOP in 3 5 8 12; do
+          for STOP in 2 3 5 7 8 9 10 12; do
             PIG_DEMO_STOP=$STOP ./engine/src/freedink --refdir "$PWD/gamedata" --game "$PWD/gamedata/pigkeeper" --window --debug --truecolor > qa_$STOP.log 2>&1 &
             QPID=$!
             sleep 28

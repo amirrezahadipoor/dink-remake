@@ -9,7 +9,7 @@ preload_seq(32);
 &t = create_sprite(90, 140, 0, 32, 2);
 &t = create_sprite(540, 130, 0, 32, 4);
 &t = create_sprite(150, 390, 0, 32, 6);
-&t = create_sprite(500, 380, 0, 32, 1);
+&t = create_sprite(560, 330, 0, 32, 1);
 &t = create_sprite(320, 110, 0, 32, 5);
 
 &st = flag_get("ch2_f1_clear");
@@ -34,7 +34,7 @@ if (&wd == 0)
  preload_seq(539);
  &t = create_sprite(520, 200, 9, 531, 1);
  sp_script(&t, "s2merc");
- &t = create_sprite(480, 330, 9, 531, 1);
+ &t = create_sprite(500, 295, 9, 531, 1);
  sp_script(&t, "s2merc");
  debug("CH2_MERCS_SPAWNED");
  int &seen;
@@ -48,7 +48,7 @@ if (&wd == 0)
 }
 //S3: نامه‌رسان ترسو، پشت درخت قایم شده
 preload_seq(231);
-&t = create_sprite(90, 250, 16, 231, 7);
+&t = create_sprite(70, 330, 16, 231, 7);
 sp_speed(&t, 0);
 sp_script(&t, "q3mail");
 kill_this_task();

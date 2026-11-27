@@ -58,14 +58,56 @@ def make_screen(script_name, tile_fn, sprites=()):
     return bytes(b)
 
 def grass(t):
-    # tileset 1 (Ts01, grass sheet) -> full idx = 128 + square
+    # چمن ساده (فقط فال‌بک)
     return 128 + (t % 4)
 
-def grass_with_path(t):
-    x, y = t % 12, t // 12
-    if y in (3, 4):          # a horizontal dirt-ish path strip (variant tiles)
-        return 128 + 8 + (x % 4)
-    return 128 + (t % 4)
+# ---- قالب‌های بیوم برداشتی از صفحه‌های دست‌ساز بازی پایه (tools/harvest.py) ----
+import re as _re, glob as _glob
+
+def _script_clear_points():
+    """نقاط اشغال هر صفحه: create_sprite های اسکریپت صفحه + نقاط فرود warp (sp_x/sp_y بعد از player_map)."""
+    sdir = os.path.join(os.path.dirname(__file__), '..', 'pigkeeper', 'Story')
+    txt = {}
+    for f in _glob.glob(os.path.join(sdir, '*.c')):
+        n = os.path.splitext(os.path.basename(f))[0].lower()
+        txt[n] = _re.sub(r'//.*', '', open(f, encoding='utf-8').read())
+    pts = {}  # screen_script_name -> [(x,y)...]
+    def add(scr_script, x, y): pts.setdefault(scr_script, []).append((int(x), int(y)))
+    # یک سطح spawn را هم دنبال کن
+    def props_of(name, depth=0):
+        out = []
+        tx = txt.get(name)
+        if tx is None: return out
+        out += [(int(a), int(b)) for a, b in _re.findall(r'create_sprite\s*\(\s*(-?\d+)\s*,\s*(-?\d+)', tx)]
+        if depth < 1:
+            for sp in _re.findall(r'spawn\s*\(\s*"([^"]+)"', tx):
+                out += props_of(sp.lower(), depth + 1)
+        return out
+    for n in txt:
+        pts[n] = props_of(n)
+    # نقاط فرود: &player_map = N ... sp_x(1, X) ... sp_y(1, Y)
+    land = {}  # screen_number -> [(x,y)]
+    for n, tx in txt.items():
+        for m_, x_, y_ in _re.findall(r'&player_map\s*=\s*(\d+)\s*;\s*sp_x\(1,\s*(-?\d+)\)\s*;\s*sp_y\(1,\s*(-?\d+)\)', tx):
+            land.setdefault(int(m_), []).append((int(x_), int(y_)))
+    return pts, land
+
+def biome_tiles(name):
+    arr = _TMPL['biomes'][name]['tiles']
+    return lambda t: arr[t]
+
+def biome_sprites(name, script_name, screen_no, pts, land, clearance=60):
+    avoid = list(pts.get(script_name, [])) + list(land.get(screen_no, []))
+    out = []
+    for x, y, seq, frame, typ, size, hard in _TMPL['biomes'][name]['sprites']:
+        ok = True
+        for ax, ay in avoid:
+            if abs(x - ax) < clearance and abs(y - ay) < clearance:
+                ok = False; break
+        if ok:
+            out.append(sprite_record(x=x, y=y, seq=seq, frame=frame,
+                                     stype=typ, size=size, active=1, hard=hard))
+    return out
 
 import json, os
 _TMPL = json.load(open(os.path.join(os.path.dirname(__file__), 'templates.json')))
@@ -91,29 +133,32 @@ def main(outdir):
     # چیدمان گرید 32xN: خانه (2) شمالِ مزرعه (34)؛ میدان (35) شرق مزرعه
     # نکته میدانی: اسپرایت‌های map-placed به preload سکانس نیاز دارند؛
     # عناصر بصری از اسکریپت ساخته می‌شوند (S1FARM) — اسلات‌ها برای warp آینده
-    farm_sprites = []
+    pts, land = _script_clear_points()
+    def B(name, script, scr_no):
+        return make_screen(script, biome_tiles(name),
+                           biome_sprites(name, script, scr_no, pts, land))
     screens = [
         make_screen('s1house', wood, wall_sprites()),       # 1: خانه (indoor)
-        make_screen('s1farm',  grass, farm_sprites),        # 2: مزرعه
-        make_screen('s1squar', grass_with_path),            # 3: میدان
-        make_screen('s2fore1', grass),                      # 4: جنگل غرب ۱
-        make_screen('s2fore2', grass),                      # 5: جنگل غرب ۲ (مارا)
-        make_screen('s5road',  grass_with_path),            # 6: جاده ساحلی
-        make_screen('s5port',  grass_with_path),            # 7: بندر سالت‌مور
+        B('farm',  's1farm',  34),                          # 2: مزرعه
+        B('square','s1squar', 35),                          # 3: میدان
+        B('fore1', 's2fore1', 33),                          # 4: جنگل غرب ۱
+        B('fore2', 's2fore2', 32),                          # 5: جنگل غرب ۲ (مارا)
+        B('road',  's5road',  31),                          # 6: جاده ساحلی
+        B('port',  's5port',  30),                          # 7: بندر سالت‌مور
         make_screen('s5tav',   wood, wall_sprites()),       # 8: میخانه لنگر کج
         make_screen('s5shop',  wood, wall_sprites()),       # 9: ساعت‌سازی مایلو
-        make_screen('s6mine1', cave),                       # 10: معدن نمک ۱
-        make_screen('s6mine2', cave),                       # 11: معدن نمک ۲ (مایلو)
-        make_screen('s7dock',  grass_with_path),            # 12: اسکله شبانه (فصل ۷)
-        make_screen('s8marsh', grass),                      # 13: مرداب خاموش
-        make_screen('s8grivn', grass_with_path),            # 14: دهکده گریون
+        B('mine1', 's6mine1', 93),                          # 10: معدن نمک ۱
+        B('mine2', 's6mine2', 94),                          # 11: معدن نمک ۲ (مایلو)
+        B('dock',  's7dock',  29),                          # 12: اسکله شبانه (فصل ۷)
+        B('marsh', 's8marsh', 28),                          # 13: مرداب خاموش
+        B('grivn', 's8grivn', 27),                          # 14: دهکده گریون
         make_screen('s8chrch', wood, wall_sprites()),       # 15: کلیسای غرق (دفتر)
-        make_screen('s9camp',  grass),                      # 16: کمپ شب آخر
-        make_screen('s10yard', grass_with_path),            # 17: حیاط دژ خاکستر
+        B('camp',  's9camp',  26),                          # 16: کمپ شب آخر
+        B('yard',  's10yard', 25),                          # 17: حیاط دژ خاکستر
         make_screen('s10kiln', cave),                       # 18: تالار کوره
         make_screen('s11top',  cave),                       # 19: سکوی کوره (فینال)
-        make_screen('s11epi',  grass),                      # 20: اپیلوگ بهار
-        make_screen('s1south', grass_with_path),            # 21: جنوب روستا (کوئست‌ها)
+        B('epi',   's11epi',  90),                          # 20: اپیلوگ بهار
+        B('south', 's1south', 66),                          # 21: جنوب روستا (کوئست‌ها)
     ]
     idx_house, idx_farm, idx_square = 2, 34, 35
     idx_f1, idx_f2 = 33, 32

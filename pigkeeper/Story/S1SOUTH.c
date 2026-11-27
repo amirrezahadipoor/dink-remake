@@ -4,7 +4,7 @@ void main( void )
 int &t;
 debug("Q_SOUTH_OK");
 preload_seq(32);
-&t = create_sprite(520, 160, 0, 32, 4);
+&t = create_sprite(90, 150, 0, 32, 4);
 //سه گل (آیتم‌های برداشتنی — seq 423: گل قرمز از دیتای پایه)
 preload_seq(66);
 int &g;
@@ -25,7 +25,7 @@ if (&g == 0)
 &g = flag_get("q1_f3");
 if (&g == 0)
 {
- &t = create_sprite(470, 250, 0, 66, 6);
+ &t = create_sprite(390, 270, 0, 66, 6);
  sp_script(&t, "q1flo3");
  sp_touch_damage(&t, -1);
 }

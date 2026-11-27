@@ -8,13 +8,13 @@ preload_seq(96);
 //خانه‌های بندر
 &t = create_sprite(140, 150, 0, 63, 2);
 sp_hard(&t, 1);
-&t = create_sprite(470, 140, 0, 96, 3);
+&t = create_sprite(380, 140, 0, 96, 3);
 sp_hard(&t, 1);
 &t = create_sprite(320, 120, 0, 63, 5);
 sp_hard(&t, 1);
 //S6: زن جوان کنار خیمه فرقه
 preload_seq(241);
-&t = create_sprite(540, 300, 16, 241, 1);
+&t = create_sprite(480, 265, 16, 241, 1);
 sp_speed(&t, 0);
 sp_script(&t, "q6widow");
 debug("Q6_WIDOW_HERE");
@@ -24,7 +24,7 @@ int &q5;
 if (&q5 == 0)
 {
  preload_seq(66);
- &t = create_sprite(560, 200, 0, 66, 10);
+ &t = create_sprite(520, 250, 0, 66, 10);
  sp_script(&t, "q5gear");
  sp_touch_damage(&t, -1);
 }
