@@ -21,9 +21,12 @@ playmidi("1003.mid");
 
 //۲-۵: منوی لمسی واقعی — نواحی کلیک روی لیبل‌های فارسی
 clear_buttons();
-make_button(205, 225, 435, 262, "btnstart");
-make_button(205, 262, 435, 294, "btncont");
-make_button(205, 325, 435, 358, "btnquit");
+button_script("btnstart");
+make_button(205, 225, 435, 262, 0);
+button_script("btncont");
+make_button(205, 262, 435, 294, 0);
+button_script("btnquit");
+make_button(205, 325, 435, 358, 0);
 
 //صفحه عنوان — تایپوگرافی v2 (x=10 یعنی وسط‌چین کامل صفحه)
 int &i;

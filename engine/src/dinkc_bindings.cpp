@@ -1503,17 +1503,23 @@ void dc_flag_get(int script, int* yield, int* preturnint, char* name)
 
 /* Remake (M5/2-5): rectangular script buttons for menus */
 struct RemakeBtn { int x1,y1,x2,y2; char script[14]; int active; } remake_btns[8];
+static char remake_btn_pending[14] = "";
+void dc_button_script(int script, int* yield, int* preturnint, char* name)
+{
+  strncpy(remake_btn_pending, name, 13);
+  remake_btn_pending[13] = '\0';
+  *preturnint = 1;
+}
 void dc_make_button(int script, int* yield, int* preturnint,
-                    int x1, int y1, int x2, int y2, char* name)
+                    int x1, int y1, int x2, int y2, int reserved)
 {
   for (int i = 0; i < 8; i++) {
     if (!remake_btns[i].active) {
       remake_btns[i].x1 = x1; remake_btns[i].y1 = y1;
       remake_btns[i].x2 = x2; remake_btns[i].y2 = y2;
-      strncpy(remake_btns[i].script, name, 13);
-      remake_btns[i].script[13] = '\0';
+      strncpy(remake_btns[i].script, remake_btn_pending, 14);
       remake_btns[i].active = 1;
-      log_info("MAKE_BUTTON %s (%d,%d-%d,%d)", name, x1, y1, x2, y2);
+      log_info("MAKE_BUTTON %s (%d,%d-%d,%d)", remake_btns[i].script, x1, y1, x2, y2);
       *preturnint = i + 1;
       return;
     }
@@ -2499,7 +2505,8 @@ void dinkc_bindings_init()
   /* Remake (2-8): persistent story flags */
   DCBD_ADD(flag_set,                  {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(flag_get,                  {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
-  DCBD_ADD(make_button,               {1,1,1,1,2,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(button_script,             {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(make_button,               {1,1,1,1,1,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(clear_buttons,            {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(say_frame,                 {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(cinema,                    {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
