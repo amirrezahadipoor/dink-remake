@@ -1501,6 +1501,27 @@ void dc_flag_get(int script, int* yield, int* preturnint, char* name)
   free(buf);
 }
 
+/* Remake (M11): local achievements (flag-backed, zero network) */
+void dc_achieve(int script, int* yield, int* preturnint, char* title)
+{
+  char* buf = latin1_to_utf8(title);
+  std::string key = "ach_"; key += buf;
+  StoryFlag* fl = flag_find(key.c_str());
+  *preturnint = 0;
+  if (fl == NULL || fl->value == 0) {
+    StoryFlag n; n.name = key; n.value = 1;
+    if (fl) fl->value = 1; else g_flags.push_back(n);
+    g_flags_dirty = 1;
+    std::string msg = "`$دستاورد باز شد: "; msg += buf;
+    char* m = strdup(msg.c_str());
+    say_text_xy(m, 30, 430, script);
+    free(m);
+    log_info("ACHIEVEMENT_OK: %s", buf);
+    *preturnint = 1;
+  }
+  free(buf);
+}
+
 /* Remake (M1): screen shake for cutscenes/impacts */
 extern void remake_screen_shake(int ms, int mag);
 void dc_screen_shake(int script, int* yield, int* preturnint, int ms, int mag)
@@ -2426,6 +2447,7 @@ void dinkc_bindings_init()
   /* Remake (2-8): persistent story flags */
   DCBD_ADD(flag_set,                  {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(flag_get,                  {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(achieve,                   {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(screen_shake,              {1,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   /* Remake (2-9): game clock */
   DCBD_ADD(get_hour,                 {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);

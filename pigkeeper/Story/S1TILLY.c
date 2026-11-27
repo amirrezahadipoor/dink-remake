@@ -15,6 +15,7 @@ if (&st == 1)
 }
 flag_set("ch1_tilly_caught", 1);
 journal_done("پیدا کردن تیلی");
+achieve("اولین دوست");
 debug("CH1_TILLY_OK");
 say("`%دینک: گرفتمت تیلی! دیگه فرار نکن.", 1);
 wait(1200);

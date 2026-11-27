@@ -155,6 +155,7 @@ jobs:
           grep -q "CH1_FARM_OK" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
+          echo "::group::NOTANIM diag"; grep -aiE "seq|\.ff|couldn|miss" pigkeeper.log | head -20; echo "::endgroup::"
 
       - name: Upload remake artifacts
         if: always()
@@ -193,3 +194,6 @@ jobs:
 
       - name: ffextract roundtrip selftest (all 142 archives)
         run: python3 tools/ffextract.py selftest gamedata/dink/graphics
+
+      - name: Balance simulator (B7 — TTK regression gate)
+        run: python3 tools/balance_sim.py

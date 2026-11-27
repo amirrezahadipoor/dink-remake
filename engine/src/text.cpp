@@ -166,7 +166,21 @@ void text_draw(int h, double brightness) {
 		}
 	} else {
 		// Display damage/experience points
-		sprintf(crap, "%d", spr[h].damage);
+		// Remake (M2): Persian digits for floating combat numbers
+		{
+			char tmp[32];
+			sprintf(tmp, "%d", spr[h].damage);
+			int w = 0;
+			for (int ci = 0; tmp[ci] != '\0' && w < 500; ci++) {
+				if (tmp[ci] >= '0' && tmp[ci] <= '9') {
+					/* U+06F0..U+06F9 => 0xDB 0xB0.. */
+					crap[w++] = (char)0xDB;
+					crap[w++] = (char)(0xB0 + (tmp[ci] - '0'));
+				} else
+					crap[w++] = tmp[ci];
+			}
+			crap[w] = '\0';
+		}
 		cr = &crap[0];
 		if (spr[h].brain_parm == 5000) // experience
 			color = 14;
