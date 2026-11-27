@@ -67,9 +67,19 @@ def grass_with_path(t):
         return 128 + 8 + (x % 4)
     return 128 + (t % 4)
 
+# الگوهای تایید‌شده از دیتای خانه پایه (Ts01=شیت۰): کف چوبی {6,7,18,19}، تیره=30
+_WOOD = (6, 7, 18, 19)
 def wood(t):
-    # indoor-ish: از واریانت‌های تیره‌تر همان شیت (برش عمودی)
-    return 128 + 32 + (t % 4)
+    x, y = t % 12, t // 12
+    if x < 2 or x > 9:
+        return 30
+    return _WOOD[((x - 2) + (y % 2) * 2) % 4]
+
+def cave(t):
+    x, y = t % 12, t // 12
+    if y == 0 or x == 0 or x == 11:
+        return 30
+    return _WOOD[(x + y) % 4] if (x + y) % 7 == 0 else 30
 
 def main(outdir):
     # چیدمان گرید 32xN: خانه (2) شمالِ مزرعه (34)؛ میدان (35) شرق مزرعه
@@ -85,10 +95,14 @@ def main(outdir):
         make_screen('s5road',  grass_with_path),            # 6: جاده ساحلی
         make_screen('s5port',  grass_with_path),            # 7: بندر سالت‌مور
         make_screen('s5tav',   wood),                       # 8: میخانه لنگر کج
+        make_screen('s5shop',  wood),                       # 9: ساعت‌سازی مایلو
+        make_screen('s6mine1', cave),                       # 10: معدن نمک ۱
+        make_screen('s6mine2', cave),                       # 11: معدن نمک ۲ (مایلو)
     ]
     idx_house, idx_farm, idx_square = 2, 34, 35
     idx_f1, idx_f2 = 33, 32
     idx_road, idx_port, idx_tav = 31, 30, 62
+    idx_shop, idx_m1, idx_m2 = 61, 93, 94
     with open(os.path.join(outdir, 'map.dat'), 'wb') as f:
         for s in screens:
             f.write(s)
@@ -103,8 +117,14 @@ def main(outdir):
     loc[idx_road] = 6
     loc[idx_port] = 7
     loc[idx_tav] = 8
+    loc[idx_shop] = 9
+    loc[idx_m1] = 10
+    loc[idx_m2] = 11
     indoor[idx_house] = 1
     indoor[idx_tav] = 1
+    indoor[idx_shop] = 1
+    indoor[idx_m1] = 1
+    indoor[idx_m2] = 1
     with open(os.path.join(outdir, 'dink.dat'), 'wb') as f:
         name = b'Pigkeeper'
         f.write(name + b'\x00' * (20 - len(name)))

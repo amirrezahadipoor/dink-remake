@@ -7,5 +7,6 @@ sp_y(1, 330);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_TAVERN");
+spawn("citele4");
 kill_this_task();
 }
