@@ -92,5 +92,14 @@ sp_y(1, 240);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_FOREST");
+wait(4000);
+//دموی باس برای CI/اسکرین‌شات
+flag_set("ch2_f1_clear", 1);
+&player_map = 32;
+sp_x(1, 180);
+sp_y(1, 240);
+load_screen();
+draw_screen();
+debug("CI_TELEPORT_BOSS");
 kill_this_task();
 }

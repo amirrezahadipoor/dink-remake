@@ -18,6 +18,27 @@ if (&st == 0)
 {
  kill_this_task();
 }
+//مرحله باس: تا گرگ نیفتاده، مارا پیدایش نمی‌شود
+&st = flag_get("ch2_wolf_down");
+if (&st == 0)
+{
+ preload_seq(640);
+ preload_seq(632);
+ preload_seq(634);
+ preload_seq(636);
+ preload_seq(638);
+ wait(400);
+ cinema(1);
+ say_xy("`4هیکل غول‌پیکری از مه بیرون می‌آید...", 140, 50);
+ wait(2200);
+ say_xy("`4گرگ قراردادی: قرارداد می‌گه جعبه. درباره‌ی جنازه‌ها چیزی ننوشته.", 40, 50);
+ wait(2600);
+ cinema(0);
+ &t = create_sprite(480, 250, 9, 640, 1);
+ sp_script(&t, "s2wolf");
+ debug("CH2_WOLF_SPAWNED");
+ kill_this_task();
+}
 wait(500);
 cinema(1);
 say_xy("`%زنی با کوله گیاه، خم شده روی رد پاها...", 110, 50);
