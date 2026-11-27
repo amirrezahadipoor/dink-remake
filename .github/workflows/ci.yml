@@ -153,6 +153,7 @@ jobs:
           grep -q "PIGKEEPER_BOOT_OK" pigkeeper.log
           grep -q "PIGKEEPER_INGAME" pigkeeper.log
           # فصل ۱ روی نقشه خودِ ریمیک
+          grep -q "MAKE_BUTTON btnstart" pigkeeper.log
           grep -q "CH1_FARM_OK" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل

@@ -265,6 +265,21 @@ void text_draw(int h, double brightness) {
 		return;
 	}
 
+	/* Remake (M5): optional translucent backdrop behind fullscreen says */
+	{
+		extern int remake_say_frame;
+		if (remake_say_frame && spr[h].damage == -1 && spr[h].text_owner == 1000) {
+			static IOGfxSurface* barsurf = NULL;
+			if (barsurf == NULL) {
+				SDL_Surface* bs = SDL_CreateRGBSurfaceWithFormat(0, 640, 34, 32, SDL_PIXELFORMAT_ARGB8888);
+				SDL_FillRect(bs, NULL, SDL_MapRGBA(bs->format, 6, 10, 18, 185));
+				barsurf = g_display->upload(bs);
+			}
+			SDL_Rect bar = {0, rcRect.top - 6, 640, 34};
+			IOGFX_backbuffer->blit(barsurf, NULL, &bar);
+		}
+	}
+
 	if (spr[h].text_cache == NULL) {
 		SDL_Color bg = {8,14,21};
 		rect rel = rcRect;

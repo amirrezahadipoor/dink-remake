@@ -19,6 +19,12 @@ sp_noclip(1, 1);
 debug("PIGKEEPER_BOOT_OK");
 playmidi("1003.mid");
 
+//۲-۵: منوی لمسی واقعی — نواحی کلیک روی لیبل‌های فارسی
+clear_buttons();
+make_button(205, 225, 435, 262, "btnstart");
+make_button(205, 262, 435, 294, "btncont");
+make_button(205, 325, 435, 358, "btnquit");
+
 //صفحه عنوان — تایپوگرافی v2 (x=10 یعنی وسط‌چین کامل صفحه)
 int &i;
 &i = 0;
@@ -34,10 +40,19 @@ say_xy("`4خروج", 10, 334);
 say_xy("`9نسخه آزمایشی ۰٫۱٫۰ — موتور آزاد FreeDink", 10, 420);
 wait(1400);
 &i += 1;
+int &go;
+&go = flag_get("title_go");
+if (&go == 1)
+{
+ goto startgame;
+}
 if (&i < 9)
 {
  goto titleloop;
 }
+startgame:
+flag_set("title_go", 0);
+clear_buttons();
 
 //ورود خودکار به بازی (تست CI — در نسخه نهایی با لمس/کلیک)
 debug("PIGKEEPER_AUTOSTART");

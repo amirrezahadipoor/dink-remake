@@ -1501,6 +1501,39 @@ void dc_flag_get(int script, int* yield, int* preturnint, char* name)
   free(buf);
 }
 
+/* Remake (M5/2-5): rectangular script buttons for menus */
+struct RemakeBtn { int x1,y1,x2,y2; char script[14]; int active; } remake_btns[8];
+void dc_make_button(int script, int* yield, int* preturnint,
+                    int x1, int y1, int x2, int y2, char* name)
+{
+  for (int i = 0; i < 8; i++) {
+    if (!remake_btns[i].active) {
+      remake_btns[i].x1 = x1; remake_btns[i].y1 = y1;
+      remake_btns[i].x2 = x2; remake_btns[i].y2 = y2;
+      strncpy(remake_btns[i].script, name, 13);
+      remake_btns[i].script[13] = '\0';
+      remake_btns[i].active = 1;
+      log_info("MAKE_BUTTON %s (%d,%d-%d,%d)", name, x1, y1, x2, y2);
+      *preturnint = i + 1;
+      return;
+    }
+  }
+  *preturnint = 0;
+}
+void dc_clear_buttons(int script, int* yield, int* preturnint)
+{
+  for (int i = 0; i < 8; i++) remake_btns[i].active = 0;
+  *preturnint = 1;
+}
+
+/* Remake (M5): dialog backdrop bar for say texts */
+int remake_say_frame = 0;
+void dc_say_frame(int script, int* yield, int* preturnint, int on)
+{
+  remake_say_frame = (on != 0);
+  *preturnint = 1;
+}
+
 /* Remake (M13/M14): cinematics */
 extern int remake_cinema_on;
 extern int remake_tint_locked;
@@ -2466,6 +2499,9 @@ void dinkc_bindings_init()
   /* Remake (2-8): persistent story flags */
   DCBD_ADD(flag_set,                  {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(flag_get,                  {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(make_button,               {1,1,1,1,2,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(clear_buttons,            {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(say_frame,                 {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(cinema,                    {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(scene_tint,                {1,1,1,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(achieve,                   {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
