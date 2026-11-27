@@ -12,3 +12,10 @@ local.properties
 # temp
 *.tmp
 *.log
+# android build
+android-project/app/jni/SDL*
+android-project/app/src/main/java/org/libsdl/
+android-project/app/src/main/assets/
+android-project/.gradle/
+android-project/app/build/
+sdl-src/

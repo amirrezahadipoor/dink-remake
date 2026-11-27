@@ -1,0 +1,88 @@
+name: Android
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  SDL_VER: 2.30.9
+  IMG_VER: 2.8.2
+  MIX_VER: 2.8.0
+  TTF_VER: 2.22.0
+  GFX_VER: 1.0.4
+
+jobs:
+  apk-debug:
+    name: Build debug APK (arm64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache SDL sources
+        id: sdlcache
+        uses: actions/cache@v4
+        with:
+          path: sdl-src
+          key: sdl-${{ env.SDL_VER }}-${{ env.IMG_VER }}-${{ env.MIX_VER }}-${{ env.TTF_VER }}-${{ env.GFX_VER }}
+
+      - name: Download SDL family sources
+        if: steps.sdlcache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p sdl-src && cd sdl-src
+          curl -sLO https://github.com/libsdl-org/SDL/releases/download/release-$SDL_VER/SDL2-$SDL_VER.tar.gz
+          curl -sLO https://github.com/libsdl-org/SDL_image/releases/download/release-$IMG_VER/SDL2_image-$IMG_VER.tar.gz
+          curl -sLO https://github.com/libsdl-org/SDL_mixer/releases/download/release-$MIX_VER/SDL2_mixer-$MIX_VER.tar.gz
+          curl -sLO https://github.com/libsdl-org/SDL_ttf/releases/download/release-$TTF_VER/SDL2_ttf-$TTF_VER.tar.gz
+          curl -sL -o SDL2_gfx-$GFX_VER.tar.gz "https://downloads.sourceforge.net/project/sdl2gfx/SDL2_gfx-$GFX_VER.tar.gz" || \
+          curl -sL -o SDL2_gfx-$GFX_VER.tar.gz "https://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-$GFX_VER.tar.gz"
+          ls -la
+
+      - name: Assemble jni tree
+        run: |
+          cd sdl-src
+          for t in *.tar.gz; do tar xzf "$t"; done
+          cd ..
+          J=android-project/app/jni
+          ln -sfn "$PWD/sdl-src/SDL2-$SDL_VER"       $J/SDL
+          ln -sfn "$PWD/sdl-src/SDL2_image-$IMG_VER" $J/SDL2_image
+          ln -sfn "$PWD/sdl-src/SDL2_mixer-$MIX_VER" $J/SDL2_mixer
+          ln -sfn "$PWD/sdl-src/SDL2_ttf-$TTF_VER"   $J/SDL2_ttf
+          ln -sfn "$PWD/sdl-src/SDL2_gfx-$GFX_VER"   $J/SDL2_gfx
+          # SDLActivity java sources (pinned to the same SDL release)
+          mkdir -p android-project/app/src/main/java/org/libsdl/app
+          cp sdl-src/SDL2-$SDL_VER/android-project/app/src/main/java/org/libsdl/app/*.java \
+             android-project/app/src/main/java/org/libsdl/app/
+          ls $J
+
+      - name: Fetch game data + build assets
+        run: |
+          sh fetch-data.sh
+          A=android-project/app/src/main/assets/freedink-data
+          mkdir -p "$A"
+          cp -r gamedata/dink "$A/dink"
+          # remake dmod (runs on base world until it ships its own maps)
+          cp -r pigkeeper "$A/pigkeeper"
+          cp gamedata/dink/Dink.dat "$A/pigkeeper/dink.dat"
+          cp gamedata/dink/Map.dat  "$A/pigkeeper/map.dat"
+          cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
+          mkdir -p "$A/fonts"
+          cp fonts/Vazirmatn-Regular.ttf "$A/fonts/"
+          du -sh "$A"
+
+      - name: Build debug APK
+        working-directory: android-project
+        run: |
+          gradle --no-daemon assembleDebug
+          ls -la app/build/outputs/apk/debug/
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pigkeeper-debug-apk
+          path: android-project/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

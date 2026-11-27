@@ -35,6 +35,10 @@
 /**
  * Bootstrap
  */
+#ifdef __ANDROID__
+#include "SDL_main.h" /* remake (3-3): export SDL_main for SDLActivity */
+#endif
+
 int main(int argc, char* argv[])
 {
 	// Create app
