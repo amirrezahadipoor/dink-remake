@@ -6,7 +6,7 @@ sp_speed(&current_sprite, 1);
 sp_timing(&current_sprite, 33);
 sp_base_walk(&current_sprite, 130);
 sp_base_death(&current_sprite, 140);
-sp_hitpoints(&current_sprite, 8);
+sp_hitpoints(&current_sprite, 10);
 sp_defense(&current_sprite, 0);
 sp_strength(&current_sprite, 2);
 sp_touch_damage(&current_sprite, 2);
