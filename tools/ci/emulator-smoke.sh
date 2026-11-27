@@ -6,7 +6,7 @@ set -e
 adb logcat -G 16M || true
 adb install android-project/app/build/outputs/apk/debug/app-debug.apk
 adb logcat -c || true
-adb shell am start -n ir.pigkeeper.dink/.MainActivity
+adb shell am start -n ir.pigkeeper.dink/.SplashActivity
 
 # resilient wait for process (cold start can be slow on emulator)
 APPPID=""
@@ -44,8 +44,11 @@ sleep 2
 adb shell input touchscreen tap $((W*72/100)) $((H*60/100))     # گفتگو
 sleep 3
 
-adb logcat -d > logcat.txt || true
 adb exec-out screencap -p > emu_boot.png || true
+# 3-9: چرخه عمر — رفتن به پس‌زمینه باید اتوسیو بزند
+adb shell input keyevent 3
+sleep 4
+adb logcat -d > logcat.txt || true
 echo "--- pigkeeper:";       grep -a "I pigkeeper" logcat.txt | head -6 || true
 echo "--- engine(SDL/APP):"; grep -a "SDL/APP" logcat.txt | head -12 || true
 echo "--- touch:";           grep -a "TOUCH_" logcat.txt | head -12 || true
@@ -63,6 +66,9 @@ grep -aq "CI_AUTOSTART_OK" logcat.txt
 grep -aq "TOUCH_CONTROLS_ON" logcat.txt
 grep -aq "TOUCH_STATE mv\[r1" logcat.txt
 grep -aq "TOUCH_TAP" logcat.txt
+grep -aq "TOUCH_LAYOUT" logcat.txt
+# 3-9: اتوسیو پس‌زمینه
+grep -aq "LIFECYCLE_AUTOSAVE" logcat.txt
 
 # perf: گزارش fps روی امولاتور (swiftshader) + کف محافظه‌کارانه
 grep -a "PERF fps=" logcat.txt | tail -3 || true

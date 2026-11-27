@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 3-10: draw into the display cutout (notch) area on API 27+ -->
+    <style name="PigTheme" parent="@android:style/Theme.NoTitleBar.Fullscreen">
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

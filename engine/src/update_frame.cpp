@@ -294,6 +294,58 @@ static int touch_hit(float x, float y, float cx, float cy, float rad) {
 	return dx*dx + dy*dy <= rad*rad;
 }
 
+/* 3-8: shared zone table — poll, tap-latch and overlay all use this.
+   FREEDINK_TOUCH_SCALE (0.6..1.6) scales button radii,
+   FREEDINK_TOUCH_LEFTY=1 mirrors the whole layout. */
+enum { TZ_ATK, TZ_MAG, TZ_TALK, TZ_INV, TZ_MENU, TZ_COUNT };
+static struct TZone { float cx, cy, r; const char* label; int lx, ly; } g_tz[TZ_COUNT];
+static float g_tz_movemax = 0.45f; /* movement zone boundary */
+static int g_tz_init = 0, g_tz_lefty = 0;
+
+static void touch_zones_init() {
+	if (g_tz_init) return;
+	float s = 1.0f;
+	const char* es = getenv("FREEDINK_TOUCH_SCALE");
+	if (es != NULL) { float v = (float)atof(es); if (v >= 0.6f && v <= 1.6f) s = v; }
+	const char* el = getenv("FREEDINK_TOUCH_LEFTY");
+	g_tz_lefty = (el != NULL && strcmp(el, "1") == 0);
+	struct TZone base[TZ_COUNT] = {
+		{0.875f, 0.78f, 0.100f, "حمله", 0, 0},
+		{0.720f, 0.88f, 0.080f, "جادو", 0, 0},
+		{0.720f, 0.60f, 0.080f, "گفتگو", 0, 0},
+		{0.575f, 0.74f, 0.070f, "آیتم", 0, 0},
+		{0.955f, 0.06f, 0.060f, "منو", 0, 0},
+	};
+	for (int i = 0; i < TZ_COUNT; i++) {
+		g_tz[i] = base[i];
+		g_tz[i].r *= s;
+		if (g_tz_lefty) g_tz[i].cx = 1.0f - g_tz[i].cx;
+		g_tz[i].lx = (int)(g_tz[i].cx * 640);
+		g_tz[i].ly = (int)(g_tz[i].cy * 480) - 12;
+	}
+	g_tz_movemax = g_tz_lefty ? 0.55f : 0.45f; /* boundary of move side */
+	g_tz_init = 1;
+	log_info("TOUCH_LAYOUT scale=%.2f lefty=%d", s, g_tz_lefty);
+}
+static int touch_in_move_zone(float x) {
+	return g_tz_lefty ? (x > g_tz_movemax) : (x < g_tz_movemax);
+}
+
+/* 3-8: haptic feedback (Android vibrator via SDL) */
+static void touch_rumble() {
+	static int tried = 0; static SDL_Haptic* hap = NULL;
+	if (!tried) {
+		tried = 1;
+		if (SDL_WasInit(SDL_INIT_HAPTIC) == 0) SDL_InitSubSystem(SDL_INIT_HAPTIC);
+		if (SDL_NumHaptics() > 0) {
+			hap = SDL_HapticOpen(0);
+			if (hap != NULL && SDL_HapticRumbleInit(hap) != 0) { SDL_HapticClose(hap); hap = NULL; }
+			if (hap != NULL) log_info("TOUCH_HAPTIC_ON");
+		}
+	}
+	if (hap != NULL) SDL_HapticRumblePlay(hap, 0.45f, 30);
+}
+
 static void remake_touch_poll() {
 	if (!g_touch.checked) {
 		const char* e = getenv("FREEDINK_TOUCH");
@@ -303,6 +355,7 @@ static void remake_touch_poll() {
 		if (g_touch.on) log_info("TOUCH_CONTROLS_ON");
 	}
 	if (!g_touch.on) return;
+	touch_zones_init();
 	g_touch.r = g_touch.l = g_touch.u = g_touch.d = 0;
 	g_touch.atk = g_touch.talk = g_touch.mag = g_touch.inv = g_touch.menu = 0;
 	if (mode < 2) { g_touch.jdown = 0; return; } /* title: taps stay mouse */
@@ -318,7 +371,7 @@ static void remake_touch_poll() {
 		SDL_Finger* f = SDL_GetTouchFinger(dev, i);
 		if (f == NULL) continue;
 		float x = f->x, y = f->y;
-		if (x < 0.45f) { /* movement zone */
+		if (touch_in_move_zone(x)) { /* movement zone */
 			if (!g_touch.jdown) { g_touch.jdown = 1; g_touch.ox = x; g_touch.oy = y; }
 			saw_joy = 1; g_touch.jx = x; g_touch.jy = y;
 			float dx = x - g_touch.ox, dy = y - g_touch.oy;
@@ -328,11 +381,11 @@ static void remake_touch_poll() {
 			if (dy >  dead) g_touch.d = 1;
 			if (dy < -dead) g_touch.u = 1;
 		} else {
-			if (touch_hit(x, y, 0.875f, 0.78f, 0.100f)) g_touch.atk  = 1;
-			if (touch_hit(x, y, 0.720f, 0.88f, 0.080f)) g_touch.mag  = 1;
-			if (touch_hit(x, y, 0.720f, 0.60f, 0.080f)) g_touch.talk = 1;
-			if (touch_hit(x, y, 0.575f, 0.74f, 0.070f)) g_touch.inv  = 1;
-			if (touch_hit(x, y, 0.955f, 0.06f, 0.060f)) g_touch.menu = 1;
+			if (touch_hit(x, y, g_tz[TZ_ATK].cx,  g_tz[TZ_ATK].cy,  g_tz[TZ_ATK].r))  g_touch.atk  = 1;
+			if (touch_hit(x, y, g_tz[TZ_MAG].cx,  g_tz[TZ_MAG].cy,  g_tz[TZ_MAG].r))  g_touch.mag  = 1;
+			if (touch_hit(x, y, g_tz[TZ_TALK].cx, g_tz[TZ_TALK].cy, g_tz[TZ_TALK].r)) g_touch.talk = 1;
+			if (touch_hit(x, y, g_tz[TZ_INV].cx,  g_tz[TZ_INV].cy,  g_tz[TZ_INV].r))  g_touch.inv  = 1;
+			if (touch_hit(x, y, g_tz[TZ_MENU].cx, g_tz[TZ_MENU].cy, g_tz[TZ_MENU].r)) g_touch.menu = 1;
 		}
 	}
 	} /* device loop */
@@ -354,13 +407,15 @@ static struct { int atk, talk, mag, inv, menu; } g_touch_latch;
 
 void remake_touch_finger_down(float x, float y) {
 	if (!g_touch.on || mode < 2) return;
-	if (x < 0.45f) return; /* movement zone: handled by polling */
+	touch_zones_init();
+	if (touch_in_move_zone(x)) return; /* movement zone: handled by polling */
 	int hitany = 0;
-	if (touch_hit(x, y, 0.875f, 0.78f, 0.100f)) { g_touch_latch.atk  = 1; hitany = 1; }
-	if (touch_hit(x, y, 0.720f, 0.88f, 0.080f)) { g_touch_latch.mag  = 1; hitany = 1; }
-	if (touch_hit(x, y, 0.720f, 0.60f, 0.080f)) { g_touch_latch.talk = 1; hitany = 1; }
-	if (touch_hit(x, y, 0.575f, 0.74f, 0.070f)) { g_touch_latch.inv  = 1; hitany = 1; }
-	if (touch_hit(x, y, 0.955f, 0.06f, 0.060f)) { g_touch_latch.menu = 1; hitany = 1; }
+	if (touch_hit(x, y, g_tz[TZ_ATK].cx,  g_tz[TZ_ATK].cy,  g_tz[TZ_ATK].r))  { g_touch_latch.atk  = 1; hitany = 1; }
+	if (touch_hit(x, y, g_tz[TZ_MAG].cx,  g_tz[TZ_MAG].cy,  g_tz[TZ_MAG].r))  { g_touch_latch.mag  = 1; hitany = 1; }
+	if (touch_hit(x, y, g_tz[TZ_TALK].cx, g_tz[TZ_TALK].cy, g_tz[TZ_TALK].r)) { g_touch_latch.talk = 1; hitany = 1; }
+	if (touch_hit(x, y, g_tz[TZ_INV].cx,  g_tz[TZ_INV].cy,  g_tz[TZ_INV].r))  { g_touch_latch.inv  = 1; hitany = 1; }
+	if (touch_hit(x, y, g_tz[TZ_MENU].cx, g_tz[TZ_MENU].cy, g_tz[TZ_MENU].r)) { g_touch_latch.menu = 1; hitany = 1; }
+	if (hitany) touch_rumble();
 	if (hitany)
 		log_info("TOUCH_TAP atk%d talk%d mag%d inv%d menu%d",
 		         g_touch_latch.atk, g_touch_latch.talk, g_touch_latch.mag,
@@ -399,10 +454,10 @@ static SDL_Rect s_lbl_rel[RTOUCH_NLABELS];
 static int s_lbl_built = 0;
 
 static void remake_touch_overlay_build() {
-	struct { const char* txt; int x; int y; } L[RTOUCH_NLABELS] = {
-		{"حمله", 560, 362}, {"جادو", 461, 410}, {"گفتگو", 461, 276},
-		{"آیتم", 368, 343}, {"منو", 611, 17}, {"+", 0, 0},
-	};
+	touch_zones_init();
+	struct { const char* txt; int x; int y; } L[RTOUCH_NLABELS];
+	for (int i = 0; i < TZ_COUNT; i++) { L[i].txt = g_tz[i].label; L[i].x = g_tz[i].lx; L[i].y = g_tz[i].ly; }
+	L[TZ_COUNT].txt = "+"; L[TZ_COUNT].x = 0; L[TZ_COUNT].y = 0;
 	FONTS_SetTextColor(235, 235, 235);
 	for (int i = 0; i < RTOUCH_NLABELS; i++) {
 		std::vector<TextCommand> cmds;
@@ -656,4 +711,16 @@ void updateFrame() {
 	
 	kill_scripts_with_inactive_sprites();
 	process_callbacks(thisTickCount);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Remake (3-9): Android lifecycle — autosave when app goes to the    */
+/* background (called from the SDL event loop in app.cpp).            */
+/* ------------------------------------------------------------------ */
+void remake_background_autosave() {
+	if (mode < 2) return;
+	if (spr[1].freeze) { log_info("LIFECYCLE_BG (frozen, skip save)"); return; }
+	save_game(9);
+	log_info("LIFECYCLE_AUTOSAVE: background -> slot 9");
 }

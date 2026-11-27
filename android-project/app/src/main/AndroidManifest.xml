@@ -3,6 +3,8 @@
     android:installLocation="auto">
 
     <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+    <!-- 3-8: haptic feedback (normal permission, auto-granted) -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:label="آخرین خوک‌چران"
@@ -10,18 +12,25 @@
         android:appCategory="game"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
-        android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+        android:theme="@style/PigTheme">
 
+        <!-- 3-9: splash + async asset extraction, then hands over to SDL -->
         <activity
-            android:name=".MainActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode"
-            android:screenOrientation="sensorLandscape"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:launchMode="singleInstance">
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/PigTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false"
+            android:launchMode="singleInstance" />
     </application>
 </manifest>

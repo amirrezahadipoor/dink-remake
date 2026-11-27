@@ -461,6 +461,15 @@ void App::one_iter() {
 				case SDL_QUIT:
 					run = 0;
 					break;
+				case SDL_APP_WILLENTERBACKGROUND:
+					{ /* remake (3-9): persist progress before Android pauses us */
+						extern void remake_background_autosave();
+						remake_background_autosave();
+					}
+					break;
+				case SDL_APP_DIDENTERFOREGROUND:
+					log_info("LIFECYCLE_RESUME");
+					break;
 				case SDL_FINGERDOWN:
 					{ /* remake (3-7): latch sub-frame taps for buttons */
 						extern void remake_touch_finger_down(float x, float y);
