@@ -9,8 +9,9 @@ android {
         applicationId "ir.pigkeeper.dink"
         minSdk 23
         targetSdk 35
-        versionCode 1
-        versionName "0.1.0-alpha"
+        // audit#2: versioned builds from CI run number (defaults for local builds)
+        versionCode (project.hasProperty('vcode') ? project.property('vcode').toInteger() : 1)
+        versionName (project.hasProperty('vname') ? project.property('vname') : "0.1.0-dev")
 
         externalNativeBuild {
             ndkBuild {

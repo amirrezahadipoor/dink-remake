@@ -4,6 +4,11 @@ on:
   push:
   workflow_dispatch:
 
+# audit#2: cancel superseded runs — faster feedback, less queue
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   engine-linux:
     name: Build engine (Linux)

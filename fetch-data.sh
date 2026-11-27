@@ -11,9 +11,14 @@ if [ -d gamedata/dink ]; then
   exit 0
 fi
 
+# supply-chain pin (audit #2): official GNU tarball, sha256-verified
+SHA256="715f44773b05b73a9ec9b62b0e152f3f281be1a1512fbaaa386176da94cffb9d"
+
 echo "Downloading base game data..."
 curl -sL --retry 5 --retry-all-errors --connect-timeout 20 --max-time 300 -o "$TMP" "$URL" || \
 curl -sL --retry 5 --retry-all-errors --connect-timeout 20 --max-time 300 -o "$TMP" "$MIRROR"
+
+echo "$SHA256  $TMP" | sha256sum -c - || { echo "CHECKSUM MISMATCH - aborting"; rm -f "$TMP"; exit 1; }
 tar xzf "$TMP"
 rm -f "$TMP"
 mv freedink-data-1.08.20190120 gamedata

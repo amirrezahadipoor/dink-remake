@@ -1431,13 +1431,17 @@ void flags_write_slot(int num) {
   char fname[32];
   sprintf(fname, "flags%d.txt", num);
   char* path = paths_sidefile_path(fname);
-  /* remake perf: clock changes every save -> only skip when flags
-     unchanged AND the slot file is fresh enough (same minute) */
+  /* remake perf: skip disk when flags unchanged — but the game clock
+     lives here too, so force a write if it drifted > 60 game-minutes
+     since the last persisted value (keeps day/night restorable). */
+  static double last_written_clock = -1e9;
   if (!g_flags_dirty) {
-    /* clock persists too, so still write, but cheaply detectable:
-       keep behaviour simple — write only if flags dirty or file absent */
-    FILE* probe = fopen(path, "rb");
-    if (probe != NULL) { fclose(probe); free(path); return; }
+    double drift = remake_clock_min - last_written_clock;
+    if (drift < 0) drift = -drift;
+    if (drift < 60) {
+      FILE* probe = fopen(path, "rb");
+      if (probe != NULL) { fclose(probe); free(path); return; }
+    }
   }
   FILE* f = fopen(path, "wb");
   if (f != NULL) {
@@ -1448,6 +1452,7 @@ void flags_write_slot(int num) {
     fclose(f);
     log_info("FLAGS_SAVED: slot %d (%d flags)", num, (int)g_flags.size());
     g_flags_dirty = 0;
+    last_written_clock = remake_clock_min;
   }
   free(path);
 }

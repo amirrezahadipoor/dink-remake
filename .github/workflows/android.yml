@@ -4,6 +4,11 @@ on:
   push:
   workflow_dispatch:
 
+# audit#2: cancel superseded runs — faster feedback, less queue
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   SDL_VER: 2.30.9
   IMG_VER: 2.8.2
@@ -80,7 +85,7 @@ jobs:
       - name: Build debug APK
         working-directory: android-project
         run: |
-          gradle --no-daemon assembleDebug
+          gradle --no-daemon assembleDebug -Pvcode=${{ github.run_number }} -Pvname=0.1.${{ github.run_number }}-alpha
           ls -la app/build/outputs/apk/debug/
 
       - name: Strict APK content audit
@@ -163,7 +168,7 @@ jobs:
 
       - name: Build x86_64 APK for emulator
         working-directory: android-project
-        run: gradle --no-daemon assembleDebug -Pabis=x86_64
+        run: gradle --no-daemon assembleDebug -Pabis=x86_64 -Pvcode=${{ github.run_number }} -Pvname=0.1.${{ github.run_number }}-alpha
 
       - name: Enable KVM
         run: |
