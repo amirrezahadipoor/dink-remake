@@ -77,6 +77,16 @@ add_item("item-fst",438, 1);
 arm_weapon();
 wait(1500);
 debug("PIGKEEPER_INGAME");
+//گالری QA (stop>=2): بدون sayloop و دموی باس، مستقیم زنجیره تله‌پورت
+int &dfast;
+&dfast = demo_stop();
+if (&dfast > 1)
+{
+ flag_set("ch1_letter", 1);
+ flag_set("ch2_f1_clear", 1);
+ spawn("citele2");
+ kill_this_task();
+}
 &i = 0;
 sayloop:
 say_xy("`%اینجا پاین‌هالو است، خانه‌ی دینک", 170, 150);
