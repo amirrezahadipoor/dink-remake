@@ -7,6 +7,12 @@ sp_y(1, 330);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_YARD");
+int &dstop;
+&dstop = demo_stop();
+if (&dstop == 10)
+{
+ kill_this_task();
+}
 spawn("citele11");
 kill_this_task();
 }

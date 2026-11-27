@@ -7,6 +7,12 @@ sp_y(1, 300);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_TOP");
+int &dstop;
+&dstop = demo_stop();
+if (&dstop == 12)
+{
+ kill_this_task();
+}
 spawn("citele13");
 kill_this_task();
 }

@@ -1501,6 +1501,13 @@ void dc_flag_get(int script, int* yield, int* preturnint, char* name)
   free(buf);
 }
 
+/* Remake (QA): demo stop index from env — per-screen screenshots in CI */
+void dc_demo_stop(int script, int* yield, int* preturnint)
+{
+  const char* e = getenv("PIG_DEMO_STOP");
+  *preturnint = (e != NULL) ? atoi(e) : 0;
+}
+
 /* Remake (M5/2-5): rectangular script buttons for menus */
 struct RemakeBtn { int x1,y1,x2,y2; char script[14]; int active; } remake_btns[8];
 static char remake_btn_pending[14] = "";
@@ -2505,6 +2512,7 @@ void dinkc_bindings_init()
   /* Remake (2-8): persistent story flags */
   DCBD_ADD(flag_set,                  {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(flag_get,                  {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(demo_stop,                {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(button_script,             {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(make_button,               {1,1,1,1,1,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(clear_buttons,            {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);

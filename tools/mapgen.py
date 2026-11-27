@@ -67,19 +67,25 @@ def grass_with_path(t):
         return 128 + 8 + (x % 4)
     return 128 + (t % 4)
 
+import json, os
+_TMPL = json.load(open(os.path.join(os.path.dirname(__file__), 'templates.json')))
+
 # الگوهای تایید‌شده از دیتای خانه پایه (Ts01=شیت۰): کف چوبی {6,7,18,19}، تیره=30
-_WOOD = (6, 7, 18, 19)
 def wood(t):
-    x, y = t % 12, t // 12
-    if x < 2 or x > 9:
-        return 30
-    return _WOOD[((x - 2) + (y % 2) * 2) % 4]
+    """کپی ۱:۱ کف/قاب خانه پایه — پارکت واقعی"""
+    return _TMPL['house_tiles'][t]
 
 def cave(t):
-    x, y = t % 12, t // 12
-    if y == 0 or x == 0 or x == 11:
-        return 30
-    return _WOOD[(x + y) % 4] if (x + y) % 7 == 0 else 30
+    """کپی ۱:۱ صفحه غار پایه (شیت 36) — سنگ واقعی"""
+    return _TMPL['cave_tiles'][t]
+
+def wall_sprites():
+    """دیوارهای داخلی seq31 دقیقاً مطابق خانه پایه"""
+    out = []
+    for x, y, seq, frame, typ, size, hard in _TMPL['house_walls']:
+        out.append(sprite_record(x=x, y=y, seq=seq, frame=frame,
+                                 stype=typ, size=size, active=1, hard=hard))
+    return out
 
 def main(outdir):
     # چیدمان گرید 32xN: خانه (2) شمالِ مزرعه (34)؛ میدان (35) شرق مزرعه
@@ -87,21 +93,21 @@ def main(outdir):
     # عناصر بصری از اسکریپت ساخته می‌شوند (S1FARM) — اسلات‌ها برای warp آینده
     farm_sprites = []
     screens = [
-        make_screen('s1house', wood),                       # 1: خانه (indoor)
+        make_screen('s1house', wood, wall_sprites()),       # 1: خانه (indoor)
         make_screen('s1farm',  grass, farm_sprites),        # 2: مزرعه
         make_screen('s1squar', grass_with_path),            # 3: میدان
         make_screen('s2fore1', grass),                      # 4: جنگل غرب ۱
         make_screen('s2fore2', grass),                      # 5: جنگل غرب ۲ (مارا)
         make_screen('s5road',  grass_with_path),            # 6: جاده ساحلی
         make_screen('s5port',  grass_with_path),            # 7: بندر سالت‌مور
-        make_screen('s5tav',   wood),                       # 8: میخانه لنگر کج
-        make_screen('s5shop',  wood),                       # 9: ساعت‌سازی مایلو
+        make_screen('s5tav',   wood, wall_sprites()),       # 8: میخانه لنگر کج
+        make_screen('s5shop',  wood, wall_sprites()),       # 9: ساعت‌سازی مایلو
         make_screen('s6mine1', cave),                       # 10: معدن نمک ۱
         make_screen('s6mine2', cave),                       # 11: معدن نمک ۲ (مایلو)
         make_screen('s7dock',  grass_with_path),            # 12: اسکله شبانه (فصل ۷)
         make_screen('s8marsh', grass),                      # 13: مرداب خاموش
         make_screen('s8grivn', grass_with_path),            # 14: دهکده گریون
-        make_screen('s8chrch', wood),                       # 15: کلیسای غرق (دفتر)
+        make_screen('s8chrch', wood, wall_sprites()),       # 15: کلیسای غرق (دفتر)
         make_screen('s9camp',  grass),                      # 16: کمپ شب آخر
         make_screen('s10yard', grass_with_path),            # 17: حیاط دژ خاکستر
         make_screen('s10kiln', cave),                       # 18: تالار کوره

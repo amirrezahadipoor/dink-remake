@@ -7,6 +7,12 @@ sp_y(1, 300);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_GRIVN");
+int &dstop;
+&dstop = demo_stop();
+if (&dstop == 7)
+{
+ kill_this_task();
+}
 spawn("citele8");
 kill_this_task();
 }

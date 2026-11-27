@@ -7,6 +7,12 @@ sp_y(1, 240);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_MINE");
+int &dstop;
+&dstop = demo_stop();
+if (&dstop == 4)
+{
+ kill_this_task();
+}
 spawn("citele5");
 kill_this_task();
 }

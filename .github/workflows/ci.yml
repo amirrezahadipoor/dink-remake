@@ -204,6 +204,22 @@ jobs:
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
           echo "::group::NOTANIM diag"; grep -aiE "seq|\.ff|couldn|miss" pigkeeper.log | head -20; echo "::endgroup::"
 
+      - name: QA gallery — per-screen screenshots (meticulous pass)
+        run: |
+          export SDL_AUDIODRIVER=dummy
+          export FREEDINK_FONT="$PWD/fonts/Vazirmatn-Regular.ttf"
+          export DISPLAY=:99
+          for STOP in 3 5 8 12; do
+            PIG_DEMO_STOP=$STOP ./engine/src/freedink --refdir "$PWD/gamedata" --game "$PWD/gamedata/pigkeeper" --window --debug --truecolor > qa_$STOP.log 2>&1 &
+            QPID=$!
+            sleep 16
+            import -window root qa_shot_$STOP.png || true
+            kill $QPID 2>/dev/null || true
+            sleep 1
+            convert qa_shot_$STOP.png -resize 800x qa_stop_$STOP.webp || true
+          done
+          ls -la qa_stop_*.webp
+
       - name: Upload remake artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -211,6 +227,7 @@ jobs:
           name: remake-boot
           path: |
             remake_*.webp
+            qa_stop_*.webp
             pigkeeper.log
           if-no-files-found: warn
 
