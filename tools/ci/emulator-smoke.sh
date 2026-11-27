@@ -45,6 +45,10 @@ adb shell input touchscreen tap $((W*72/100)) $((H*60/100))     # گفتگو
 sleep 3
 
 adb exec-out screencap -p > emu_boot.png || true
+# 4-5: مصرف حافظه
+MEMKB=$(adb shell dumpsys meminfo ir.pigkeeper.dink 2>/dev/null | grep -m1 "TOTAL PSS:" | grep -oE '[0-9]+' | head -1)
+echo "PERF mem_total_pss_kb=$MEMKB"
+test -n "$MEMKB" && test "$MEMKB" -le 500000
 # 3-9: چرخه عمر — رفتن به پس‌زمینه باید اتوسیو بزند
 adb shell input keyevent 3
 sleep 4

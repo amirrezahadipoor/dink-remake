@@ -132,9 +132,7 @@ jobs:
           export FREEDINK_FONT="$PWD/fonts/Vazirmatn-Regular.ttf"
           export DISPLAY=:99
           cp -r pigkeeper gamedata/pigkeeper
-          # prototype demo runs on the base world until the remake ships its own maps (phase 5)
-          cp gamedata/dink/Dink.dat gamedata/pigkeeper/dink.dat
-          cp gamedata/dink/Map.dat  gamedata/pigkeeper/map.dat
+          # phase 5: the remake now ships ITS OWN maps (tools/mapgen.py); only tileset hardness is shared
           cp gamedata/dink/Hard.dat gamedata/pigkeeper/hard.dat
           ./engine/src/freedink --refdir "$PWD/gamedata" --game "$PWD/gamedata/pigkeeper" --window --debug > pigkeeper.log 2>&1 &
           PID=$!
@@ -153,6 +151,9 @@ jobs:
           test "$ALIVE_G" = ok
           grep -q "PIGKEEPER_BOOT_OK" pigkeeper.log
           grep -q "PIGKEEPER_INGAME" pigkeeper.log
+          # فصل ۱ روی نقشه خودِ ریمیک
+          grep -q "CH1_FARM_OK" pigkeeper.log
+          grep -q "JOURNAL_ADD" pigkeeper.log
 
       - name: Upload remake artifacts
         if: always()

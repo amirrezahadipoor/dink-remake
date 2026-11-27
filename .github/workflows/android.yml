@@ -75,9 +75,12 @@ jobs:
           cp -r gamedata/dink "$A/dink"
           # remake dmod (runs on base world until it ships its own maps)
           cp -r pigkeeper "$A/pigkeeper"
-          cp gamedata/dink/Dink.dat "$A/pigkeeper/dink.dat"
-          cp gamedata/dink/Map.dat  "$A/pigkeeper/map.dat"
           cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
+          # 4-2: بازفشرده‌سازی موسیقی فقط در بسته اندروید (دیتای دسکتاپ دست‌نخورده)
+          for o in "$A"/dink/Sound/*.ogg; do
+            ffmpeg -loglevel error -y -i "$o" -c:a libvorbis -q:a 4 "$o.tmp.ogg" && mv "$o.tmp.ogg" "$o"
+          done
+          du -sh "$A"/dink/Sound
           mkdir -p "$A/fonts"
           cp fonts/Vazirmatn-Regular.ttf "$A/fonts/"
           du -sh "$A"
@@ -160,9 +163,12 @@ jobs:
           mkdir -p "$A"
           cp -r gamedata/dink "$A/dink"
           cp -r pigkeeper "$A/pigkeeper"
-          cp gamedata/dink/Dink.dat "$A/pigkeeper/dink.dat"
-          cp gamedata/dink/Map.dat  "$A/pigkeeper/map.dat"
           cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
+          # 4-2: بازفشرده‌سازی موسیقی فقط در بسته اندروید (دیتای دسکتاپ دست‌نخورده)
+          for o in "$A"/dink/Sound/*.ogg; do
+            ffmpeg -loglevel error -y -i "$o" -c:a libvorbis -q:a 4 "$o.tmp.ogg" && mv "$o.tmp.ogg" "$o"
+          done
+          du -sh "$A"/dink/Sound
           mkdir -p "$A/fonts"
           cp fonts/Vazirmatn-Regular.ttf "$A/fonts/"
 

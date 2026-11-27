@@ -85,3 +85,9 @@ N × { uint32 LE offset;  char name[13];  /* nul-terminated */ }
 - تله‌متری: `PERF fps=` (هر ۵s) · `PERF first_frame_ms=` · `PERF save_ms=` — کف‌های CI: دسکتاپ fps≥30، امولاتور ≥20، بوت ≤15s
 - الگوهای ممنوع (تجربه‌شده): ساخت/آزادسازی تکسچر در هر فریم (لیبل‌ها کش شدند)، حلقه پیکسلی CPU برای روشنایی (ColorMod)، fopen در هر تعویض صفحه (هندل کش شد)، نوشتن دیسک بی‌تغییر در اتوسیو (dirty-tracking + گارد دریفت ساعت ۶۰دقیقه‌ای)
 - باگ ارثی فیکس‌شده: invalidation معکوس کش متن + ذخیره‌نشدن رنگ کش (text.cpp)
+
+## ۱۳. فرمت باینری نقشه (ترنسکرایب‌شده برای mapgen)
+- `map.dat`: هر صفحه ۳۱۲۸۰ بایت: name[20] · ۹۷×تایل{idx LE4, prop4, althard4, 6, pad2, buff60}=80B · v[160] · s[80] · ۱۰۱×اسپرایت[220] · script[21] · 1018 · pad1
+- `dink.dat`: name[20] · loc[769]·music[769]·indoor[769] (LE int) · 2240
+- تایل: `square_full_idx0 = tileset*128 + square` (Ts01 چمن → 128+)
+- خوک: brain=4، seq walk پایه 40 (41/43/47/49) — از Dink.ini
