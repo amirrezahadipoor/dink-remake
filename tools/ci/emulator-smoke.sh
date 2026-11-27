@@ -31,12 +31,17 @@ sleep 45
 # ---- touch E2E: swipe in move zone, tap attack & talk zones ----
 SIZE=$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1)
 W=${SIZE%x*}; H=${SIZE#*x}
-echo "screen: ${W}x${H}"
-adb shell input swipe $((W*18/100)) $((H*55/100)) $((W*33/100)) $((H*55/100)) 900
+# اپ landscape-قفل است؛ اگر ابعاد پرتره گزارش شد، فضای نمایشِ چرخیده را فرض کن
+if [ "$W" -lt "$H" ]; then TMPD=$W; W=$H; H=$TMPD; fi
+echo "screen(landscape space): ${W}x${H}"
+adb shell dumpsys input | grep -i "SurfaceOrientation" | head -2 || true
+adb shell input touchscreen swipe $((W*18/100)) $((H*55/100)) $((W*33/100)) $((H*55/100)) 1200
 sleep 2
-adb shell input tap $((W*875/1000)) $((H*78/100))   # حمله
+adb shell input touchscreen tap $((W*875/1000)) $((H*78/100))   # حمله
+sleep 1
+adb shell input touchscreen tap $((W*875/1000)) $((H*78/100))
 sleep 2
-adb shell input tap $((W*72/100)) $((H*60/100))     # گفتگو
+adb shell input touchscreen tap $((W*72/100)) $((H*60/100))     # گفتگو
 sleep 3
 
 adb logcat -d > logcat.txt || true
