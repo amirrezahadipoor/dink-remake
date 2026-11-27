@@ -3,6 +3,7 @@
 # Produces ./gamedata (~84MB). Used locally and by CI.
 set -e
 URL="https://ftp.gnu.org/gnu/freedink/freedink-data-1.08.20190120.tar.gz"
+MIRROR="https://ftpmirror.gnu.org/freedink/freedink-data-1.08.20190120.tar.gz"
 TMP="${TMPDIR:-/tmp}/freedink-data.tar.gz"
 
 if [ -d gamedata/dink ]; then
@@ -11,7 +12,8 @@ if [ -d gamedata/dink ]; then
 fi
 
 echo "Downloading base game data..."
-curl -sL -o "$TMP" "$URL"
+curl -sL --retry 5 --retry-all-errors --connect-timeout 20 --max-time 300 -o "$TMP" "$URL" || \
+curl -sL --retry 5 --retry-all-errors --connect-timeout 20 --max-time 300 -o "$TMP" "$MIRROR"
 tar xzf "$TMP"
 rm -f "$TMP"
 mv freedink-data-1.08.20190120 gamedata
