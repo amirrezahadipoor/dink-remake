@@ -36,9 +36,12 @@ jobs:
         run: |
           ./configure || { echo "::group::config.log"; cat config.log; echo "::endgroup::"; exit 1; }
 
-      - name: Build
+      - name: Build (game binary only — editor/man race excluded)
         working-directory: engine
-        run: make -j"$(nproc)"
+        run: |
+          make -j2 -C gnulib/lib
+          make -j2 -C po || true
+          make -j2 -C src freedink
 
       - name: Upload engine binary
         uses: actions/upload-artifact@v4
