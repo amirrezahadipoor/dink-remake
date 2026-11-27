@@ -1400,6 +1400,105 @@ void dc_journal_done(int script, int* yield, int* preturnint, char* title)
   free(buf);
 }
 
+/* ------------------------------------------------------------------ */
+/* Remake (2-8): persistent story flags — the backbone of dialog       */
+/* choices with consequences and the three endings. Saved per slot in  */
+/* "flagsN.txt" (+ the game clock), classic binary format untouched.   */
+/* ------------------------------------------------------------------ */
+struct StoryFlag { std::string name; int value; };
+static std::vector<StoryFlag> g_flags;
+
+void flags_reset() { g_flags.clear(); }
+
+static StoryFlag* flag_find(const char* name) {
+  for (unsigned i = 0; i < g_flags.size(); i++)
+    if (g_flags[i].name == name)
+      return &g_flags[i];
+  return NULL;
+}
+
+void flags_write_slot(int num) {
+  char fname[32];
+  sprintf(fname, "flags%d.txt", num);
+  char* path = paths_sidefile_path(fname);
+  FILE* f = fopen(path, "wb");
+  if (f != NULL) {
+    fprintf(f, "FLG1\n");
+    fprintf(f, "CLOCK|%d\n", (int)remake_clock_min);
+    for (unsigned i = 0; i < g_flags.size(); i++)
+      fprintf(f, "%d|%s\n", g_flags[i].value, g_flags[i].name.c_str());
+    fclose(f);
+    log_info("FLAGS_SAVED: slot %d (%d flags)", num, (int)g_flags.size());
+  }
+  free(path);
+}
+
+void flags_read_slot(int num) {
+  char fname[32];
+  sprintf(fname, "flags%d.txt", num);
+  char* path = paths_sidefile_path(fname);
+  FILE* f = fopen(path, "rb");
+  g_flags.clear();
+  if (f != NULL) {
+    char line[512];
+    if (fgets(line, sizeof(line), f) != NULL && strncmp(line, "FLG1", 4) == 0) {
+      while (fgets(line, sizeof(line), f) != NULL) {
+        char* nl = strchr(line, '\n'); if (nl) *nl = '\0';
+        char* sep = strchr(line, '|');
+        if (sep == NULL) continue;
+        *sep = '\0';
+        if (strcmp(line, "CLOCK") == 0) { remake_clock_min = atoi(sep + 1); continue; }
+        StoryFlag fl; fl.value = atoi(line); fl.name = sep + 1;
+        if (!fl.name.empty()) g_flags.push_back(fl);
+      }
+    }
+    fclose(f);
+    log_info("FLAGS_LOADED: slot %d (%d flags)", num, (int)g_flags.size());
+  }
+  free(path);
+}
+
+void dc_flag_set(int script, int* yield, int* preturnint, char* name, int value)
+{
+  char* buf = latin1_to_utf8(name);
+  StoryFlag* fl = flag_find(buf);
+  if (fl != NULL) fl->value = value;
+  else { StoryFlag n; n.name = buf; n.value = value; g_flags.push_back(n); }
+  log_info("FLAG_SET: %s = %d", buf, value);
+  free(buf);
+  *preturnint = value;
+}
+
+void dc_flag_get(int script, int* yield, int* preturnint, char* name)
+{
+  char* buf = latin1_to_utf8(name);
+  StoryFlag* fl = flag_find(buf);
+  *preturnint = (fl != NULL) ? fl->value : 0;
+  free(buf);
+}
+
+/* Remake (2-9): game clock API for scripts (NPC schedules, quests) */
+void dc_get_hour(int script, int* yield, int* preturnint)
+{
+  *preturnint = ((int)(remake_clock_min / 60)) % 24;
+}
+
+void dc_set_hour(int script, int* yield, int* preturnint, int hour)
+{
+  if (hour < 0) hour = 0;
+  if (hour > 23) hour = 23;
+  remake_clock_min = hour * 60;
+  log_info("CLOCK_SET: hour %d", hour);
+  *preturnint = hour;
+}
+
+void dc_is_night(int script, int* yield, int* preturnint)
+{
+  int hour = ((int)(remake_clock_min / 60)) % 24;
+  *preturnint = (hour >= 20 || hour < 5) ? 1 : 0;
+}
+/* ------------------------------------------------------------------ */
+
 void dc_journal_say(int script, int* yield, int* preturnint)
 {
   std::string out = "`%دفترچه مأموریت‌ها:";
@@ -2288,6 +2387,13 @@ void dinkc_bindings_init()
   DCBD_ADD(journal_add,               {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(journal_done,              {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(journal_say,              {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  /* Remake (2-8): persistent story flags */
+  DCBD_ADD(flag_set,                  {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(flag_get,                  {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  /* Remake (2-9): game clock */
+  DCBD_ADD(get_hour,                 {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(set_hour,                  {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(is_night,                 {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(force_vision,              {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(fill_screen,               {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(load_game,                 {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);

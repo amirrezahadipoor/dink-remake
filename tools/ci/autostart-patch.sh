@@ -31,6 +31,26 @@ int &crap;
  journal_add("بازسازی خانه");
  journal_done("پیدا کردن تیلی");
  journal_say();
+ //2-8: فلگ‌های داستانی
+ flag_set("fire_witness", 1);
+ flag_set("mayor_mood", 2);
+ &crap = flag_get("fire_witness");
+ if (&crap == 1)
+ {
+  debug("CI_FLAG_OK");
+ }
+ //2-9: ساعت و شب
+ &crap = is_night();
+ if (&crap == 0)
+ {
+  debug("CI_DAY_OK");
+ }
+ set_hour(22);
+ &crap = is_night();
+ if (&crap == 1)
+ {
+  debug("CI_NIGHT_OK");
+ }
  wait(500);
  save_game(7);
  debug("CI_SAVED_7");

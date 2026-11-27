@@ -843,6 +843,10 @@ void set_keep_mouse(int on) {
 
 
 extern void journal_reset(); /* remake: quest journal (dinkc_bindings.cpp) */
+extern void flags_reset();   /* remake: story flags (dinkc_bindings.cpp) */
+
+/* Remake (2-9): in-game clock, in game-minutes [0..1440). Starts 08:00. */
+double remake_clock_min = 8 * 60;
 
 void game_init(int version)
 {
@@ -853,6 +857,8 @@ void game_init(int version)
   memset(&play, 0, sizeof(play));
   live_sprites_manager_init();
   journal_reset(); /* remake: fresh quest journal on new game */
+  flags_reset();   /* remake: fresh story flags on new game */
+  remake_clock_min = 8 * 60; /* remake: new day starts 08:00 */
 
   gfx_sprites_loading_listener = draw_wait;
   

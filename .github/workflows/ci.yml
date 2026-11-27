@@ -58,7 +58,7 @@ jobs:
           Xvfb :99 -screen 0 1280x720x24 &
           export DISPLAY=:99
           sleep 2
-          ./engine/src/freedink --refdir "$PWD/gamedata" --window --debug > freedink.log 2>&1 &
+          ./engine/src/freedink --refdir "$PWD/gamedata" --window --debug --truecolor > freedink.log 2>&1 &
           PID=$!
           sleep 12
           import -window root shot_title.png || true
@@ -94,6 +94,18 @@ jobs:
           grep -q "^0|" "$J7"
           find ~/.dink -name 'save9.dat' | grep -q .
           echo "save/journal/autosave checks passed ✓"
+          # --- 2-8 / 2-9: story flags, clock, night ---
+          grep -q "CI_FLAG_OK" freedink.log
+          grep -q "CI_DAY_OK" freedink.log
+          grep -q "CLOCK_SET: hour 22" freedink.log
+          grep -q "CI_NIGHT_OK" freedink.log
+          grep -q "NIGHT_DIM_ON" freedink.log
+          grep -q "FLAGS_SAVED: slot 7 (2 flags)" freedink.log
+          F7=$(find ~/.dink -name 'flags7.txt' | head -1); test -n "$F7"
+          grep -q "CLOCK|1320" "$F7"
+          grep -q "1|fire_witness" "$F7"
+          grep -q "2|mayor_mood" "$F7"
+          echo "flags/clock/night checks passed ✓"
 
       - name: Remake boot test (pigkeeper D-Mod, Persian title)
         run: |

@@ -87,6 +87,7 @@ extern int base_timing;
 
 extern int keep_mouse;
 extern int mode;
+extern double remake_clock_min; /* remake (2-9): game clock, minutes 0..1440 */
 
 extern int warp_editor_sprite;
 extern int show_inventory;

@@ -225,9 +225,49 @@ static void remake_autosave() {
 	}
 }
 
+/* Remake (2-9): advance the game clock and apply a simple night
+   dimming (needs truecolor; the Android build runs truecolor/GL).
+   Day length via FREEDINK_DAYLEN in real seconds (default 1200 = 20min,
+   0 disables the whole system). Fades keep priority over night dim. */
+static void remake_clock_and_night() {
+	static int daylen = -2;
+	static Uint32 lastms = 0;
+	static int night_applied = 0;
+	const double NIGHT_BRIGHT = 170;
+	if (daylen == -2) {
+		const char* e = getenv("FREEDINK_DAYLEN");
+		daylen = (e != NULL) ? atoi(e) : 1200;
+		lastms = SDL_GetTicks();
+	}
+	if (daylen <= 0)
+		return;
+	Uint32 now = SDL_GetTicks();
+	if (mode >= 2) { /* clock only runs while playing */
+		remake_clock_min += (now - lastms) * (1440.0 / (daylen * 1000.0));
+		while (remake_clock_min >= 1440) remake_clock_min -= 1440;
+	}
+	lastms = now;
+	/* night = 20:00..05:00 */
+	int hour = ((int)(remake_clock_min / 60)) % 24;
+	int night = (hour >= 20 || hour < 5);
+	/* don't fight running fades */
+	if (process_downcycle || process_upcycle)
+		return;
+	if (mode >= 2 && night && g_display->brightness == 256) {
+		g_display->brightness = NIGHT_BRIGHT;
+		if (!night_applied) log_info("NIGHT_DIM_ON (hour %d)", hour);
+		night_applied = 1;
+	} else if ((!night || mode < 2) && night_applied && g_display->brightness == NIGHT_BRIGHT) {
+		g_display->brightness = 256;
+		log_info("NIGHT_DIM_OFF (hour %d)", hour);
+		night_applied = 0;
+	}
+}
+
 void updateFrame() {
 	check_joystick();
 	remake_autosave();
+	remake_clock_and_night();
 	
 	int move_result ;
     

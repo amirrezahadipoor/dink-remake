@@ -81,9 +81,11 @@
 }
 
 
-/* Remake: quest journal (implemented in dinkc_bindings.cpp) */
+/* Remake: quest journal + story flags (implemented in dinkc_bindings.cpp) */
 extern void journal_write_slot(int num);
 extern void journal_read_slot(int num);
+extern void flags_write_slot(int num);
+extern void flags_read_slot(int num);
 
 /*bool*/int load_game(int num)
 {
@@ -345,8 +347,9 @@ extern void journal_read_slot(int num);
   
   last_saved_game = num;
 
-  /* Remake (2-7): restore the quest journal for this slot */
+  /* Remake (2-7/2-8): restore quest journal + story flags/clock */
   journal_read_slot(num);
+  flags_read_slot(num);
 
   return /*true*/1;
 }
@@ -515,6 +518,7 @@ void save_game(int num)
   free(path_tmp);
   free(path_final);
   journal_write_slot(num);
+  flags_write_slot(num);
 
 #ifdef __EMSCRIPTEN__
   // Flush changes to IDBFS
