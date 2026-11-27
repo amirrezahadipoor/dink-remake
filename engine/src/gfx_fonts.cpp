@@ -222,7 +222,14 @@ static TTF_Font *load_default_font() {
       return NULL;
     }
 
-  font_object = TTF_OpenFontRW(rwops, 1, FONT_SIZE);
+  /* Remake (typography): tunable size for hi-dpi phones; default classic */
+  int font_size = FONT_SIZE;
+  {
+    const char* fs = getenv("FREEDINK_FONT_SIZE");
+    if (fs != NULL && atoi(fs) >= 8 && atoi(fs) <= 40)
+      font_size = atoi(fs);
+  }
+  font_object = TTF_OpenFontRW(rwops, 1, font_size);
   if (font_object == NULL)
     {
       log_error("Could not open font 'LiberationSans-Regular.ttf': %s", TTF_GetError());
@@ -487,9 +494,16 @@ static char* shape_rtl_utf8(const char* str) {
 	/* Remake: shape Persian/Arabic text before rendering (phase 2-2) */
 	char* shaped = shape_rtl_utf8(str);
 
-	/* Transparent, low quality - closest to the original engine. */
-	/* Also we do need a monochrome rendering for palette support above */
-	SDL_Surface* tmp = TTF_RenderUTF8_Solid(font, shaped ? shaped : str, color);
+	SDL_Surface* tmp;
+	if (truecolor) {
+		/* Remake (typography): anti-aliased glyphs in truecolor —
+		   crisp Persian text instead of jagged monochrome edges */
+		tmp = TTF_RenderUTF8_Blended(font, shaped ? shaped : str, color);
+	} else {
+		/* Transparent, low quality - closest to the original engine. */
+		/* Also we do need a monochrome rendering for palette support above */
+		tmp = TTF_RenderUTF8_Solid(font, shaped ? shaped : str, color);
+	}
 	if (shaped)
 		free(shaped);
 	if (tmp == NULL) {

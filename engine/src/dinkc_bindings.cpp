@@ -1501,16 +1501,17 @@ void dc_is_night(int script, int* yield, int* preturnint)
 
 void dc_journal_say(int script, int* yield, int* preturnint)
 {
-  std::string out = "`%دفترچه مأموریت‌ها:";
+  /* remake typography: structured, scannable Persian journal */
+  std::string out = "`%ــ دفترچه مأموریت‌ها ــ";
   int shown = 0;
   for (unsigned i = 0; i < g_journal.size() && shown < 8; i++) {
     out += "\n";
-    out += (g_journal[i].done ? "+ " : "- ");
+    out += (g_journal[i].done ? "[انجام شد] " : "[در جریان] ");
     out += g_journal[i].title;
     shown++;
   }
   if (g_journal.empty())
-    out += "\n(خالی)";
+    out += "\nهنوز مأموریتی ثبت نشده";
   char* text = strdup(out.c_str());
   int tsprite = say_text_xy(text, 40, 60, script);
   *preturnint = tsprite;
