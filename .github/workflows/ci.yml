@@ -85,12 +85,14 @@ jobs:
           export FREEDINK_FONT="$PWD/fonts/Vazirmatn-Regular.ttf"
           export DISPLAY=:99
           cp -r pigkeeper gamedata/pigkeeper
+          # prototype demo runs on the base world until the remake ships its own maps (phase 5)
+          cp gamedata/dink/dink.dat gamedata/dink/Map.dat gamedata/dink/Hard.dat gamedata/pigkeeper/
           ./engine/src/freedink --refdir "$PWD/gamedata" --game pigkeeper --window --debug > pigkeeper.log 2>&1 &
           PID=$!
-          sleep 14
+          sleep 7
           import -window root rshot_title.png || true
           ALIVE_T=ok; kill -0 $PID 2>/dev/null || ALIVE_T=dead
-          sleep 16
+          sleep 23
           import -window root rshot_ingame.png || true
           ALIVE_G=ok; kill -0 $PID 2>/dev/null || ALIVE_G=dead
           kill $PID 2>/dev/null || true
