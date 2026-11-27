@@ -19,6 +19,7 @@
 #include "text.h"
 #include "bgm.h"
 #include "live_screen.h"
+#include "log.h"
 
 /**
  * Check whether planned new position (x1,y1) is solid
