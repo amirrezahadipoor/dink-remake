@@ -266,3 +266,6 @@ jobs:
 
       - name: Persian audit (Q3 — zero English in gameplay text)
         run: python3 tools/ci/persian-audit.py
+
+      - name: Story audit (cross-refs, flags, journals, seqs, warps)
+        run: python3 tools/ci/story-audit.py

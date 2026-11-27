@@ -1,5 +1,6 @@
 void main( void )
 {
+journal_done("شب یلدا: نفوذ به دژ خاکستر");
 say_frame(1);
 cinema(1);
 say_xy("`7(فصل ۱۰ — کوره خاطرات)", 200, 220);

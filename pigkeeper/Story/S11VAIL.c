@@ -2,6 +2,7 @@
 void main( void )
 {
 debug("CH11_VAIL_SCENE");
+journal_done("بالای سکو: وَیل و دفتر");
 //حالت گالری QA: مستقیم به منو (بدون دیالوگ‌های طولانی)
 int &dq;
 &dq = demo_stop();

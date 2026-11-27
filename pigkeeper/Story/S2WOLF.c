@@ -1,4 +1,4 @@
-//باس پرده ۱: «گرگ قراردادی» — سرکرده مزدورها (B1: hp30 dmg6 def2 exp25)
+//باس پرده ۱: «گرگ قراردادی» — سرکرده مزدورها (B1 v2: hp62 dmg5 def1 exp150)
 void main( void )
 {
 sp_brain(&current_sprite, 9);

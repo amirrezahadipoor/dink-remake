@@ -22,19 +22,27 @@ preload_seq(231);
 &t = create_sprite(120, 300, 16, 231, 1);
 sp_speed(&t, 0);
 sp_script(&t, "q10post");
+preload_seq(66);
 int &q;
-&q = flag_get("q10_letters");
-if (&q < 3)
+&q = flag_get("q10_l1");
+if (&q == 0)
 {
- preload_seq(66);
  &t = create_sprite(250, 350, 0, 66, 8);
- sp_script(&t, "q10letr");
+ sp_script(&t, "q10let1");
  sp_touch_damage(&t, -1);
+}
+&q = flag_get("q10_l2");
+if (&q == 0)
+{
  &t = create_sprite(480, 200, 0, 66, 8);
- sp_script(&t, "q10letr");
+ sp_script(&t, "q10let2");
  sp_touch_damage(&t, -1);
+}
+&q = flag_get("q10_l3");
+if (&q == 0)
+{
  &t = create_sprite(360, 310, 0, 66, 8);
- sp_script(&t, "q10letr");
+ sp_script(&t, "q10let3");
  sp_touch_damage(&t, -1);
 }
 debug("Q10_SET");

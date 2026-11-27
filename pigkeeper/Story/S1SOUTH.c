@@ -6,22 +6,30 @@ debug("Q_SOUTH_OK");
 preload_seq(32);
 &t = create_sprite(520, 160, 0, 32, 4);
 //سه گل (آیتم‌های برداشتنی — seq 423: گل قرمز از دیتای پایه)
+preload_seq(66);
 int &g;
-&g = flag_get("q1_flowers");
-if (&g < 3)
+&g = flag_get("q1_f1");
+if (&g == 0)
 {
- preload_seq(66);
  &t = create_sprite(180, 200, 0, 66, 2);
- sp_script(&t, "q1flower");
+ sp_script(&t, "q1flo1");
  sp_touch_damage(&t, -1);
- &t = create_sprite(320, 300, 0, 66, 4);
- sp_script(&t, "q1flower");
- sp_touch_damage(&t, -1);
- &t = create_sprite(470, 250, 0, 66, 6);
- sp_script(&t, "q1flower");
- sp_touch_damage(&t, -1);
- debug("Q1_FLOWERS_SET");
 }
+&g = flag_get("q1_f2");
+if (&g == 0)
+{
+ &t = create_sprite(320, 300, 0, 66, 4);
+ sp_script(&t, "q1flo2");
+ sp_touch_damage(&t, -1);
+}
+&g = flag_get("q1_f3");
+if (&g == 0)
+{
+ &t = create_sprite(470, 250, 0, 66, 6);
+ sp_script(&t, "q1flo3");
+ sp_touch_damage(&t, -1);
+}
+debug("Q1_FLOWERS_SET");
 //S2: پیر هیزم‌شکن و پسرِ «آرام‌شده»
 preload_seq(231);
 &t = create_sprite(120, 350, 16, 231, 1);

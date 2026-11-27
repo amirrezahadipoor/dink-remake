@@ -1,4 +1,4 @@
-//باس: دودِ یادها (B1: hp45 dmg7 def2 exp60)
+//باس: دودِ یادها (B1 v2: hp100 dmg7 def2 exp500)
 void main( void )
 {
 sp_brain(&current_sprite, 9);

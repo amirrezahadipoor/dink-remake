@@ -11,6 +11,8 @@ if (&st == 1)
 //حیاتی‌ها قبل از wait (الگوی ثبت‌شده)
 flag_set("ch6_milo_truth", 1);
 journal_done("مایلو را در معدن نمک پیدا کن");
+journal_done("جعبه را به مایلو در سالت‌مور برسان");
+journal_done("نشان گره دریایی را دنبال کن");
 journal_add("دفتر را در مرداب خاموش پیدا کن");
 achieve("نمک و دروغ");
 debug("CH6_MILO_TRUTH");

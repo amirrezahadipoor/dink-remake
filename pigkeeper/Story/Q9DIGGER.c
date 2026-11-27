@@ -1,4 +1,4 @@
-//S9 «حفار سفید» — مینی‌باس (B1: hp26 dmg4 def1 exp30)
+//S9 «حفار سفید» — مینی‌باس (B1 v2: hp78 dmg4 def1 exp200)
 void main( void )
 {
 sp_brain(&current_sprite, 9);
