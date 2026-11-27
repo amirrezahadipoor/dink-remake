@@ -31,4 +31,44 @@
 
 #define LOCALEDIR "/sdcard/nonexistent-locale"
 
+/* gnulib attribute macros (normally emitted by autotools config.h) */
+#ifndef _GL_ATTRIBUTE_PURE
+# define _GL_ATTRIBUTE_PURE __attribute__((__pure__))
+#endif
+#ifndef _GL_ATTRIBUTE_CONST
+# define _GL_ATTRIBUTE_CONST __attribute__((__const__))
+#endif
+#ifndef _GL_ATTRIBUTE_MALLOC
+# define _GL_ATTRIBUTE_MALLOC __attribute__((__malloc__))
+#endif
+#ifndef _GL_ATTRIBUTE_WUR
+# define _GL_ATTRIBUTE_WUR __attribute__((__warn_unused_result__))
+#endif
+#ifndef _GL_ATTRIBUTE_DEPRECATED
+# define _GL_ATTRIBUTE_DEPRECATED
+#endif
+#ifndef _GL_ATTRIBUTE_NOTHROW
+# define _GL_ATTRIBUTE_NOTHROW
+#endif
+#ifndef _GL_INLINE_HEADER_BEGIN
+# define _GL_INLINE_HEADER_BEGIN
+#endif
+#ifndef _GL_INLINE_HEADER_END
+# define _GL_INLINE_HEADER_END
+#endif
+#ifndef _GL_INLINE
+# define _GL_INLINE static inline
+#endif
+#ifndef _GL_EXTERN_INLINE
+# define _GL_EXTERN_INLINE static inline
+#endif
+#ifndef _GL_UNUSED
+# define _GL_UNUSED __attribute__((__unused__))
+#endif
+#ifndef _Noreturn
+# if defined __cplusplus
+#  define _Noreturn [[noreturn]]
+# endif
+#endif
+
 #endif
