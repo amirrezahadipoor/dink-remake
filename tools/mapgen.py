@@ -105,6 +105,8 @@ def main(outdir):
         make_screen('s9camp',  grass),                      # 16: کمپ شب آخر
         make_screen('s10yard', grass_with_path),            # 17: حیاط دژ خاکستر
         make_screen('s10kiln', cave),                       # 18: تالار کوره
+        make_screen('s11top',  cave),                       # 19: سکوی کوره (فینال)
+        make_screen('s11epi',  grass),                      # 20: اپیلوگ بهار
     ]
     idx_house, idx_farm, idx_square = 2, 34, 35
     idx_f1, idx_f2 = 33, 32
@@ -112,6 +114,7 @@ def main(outdir):
     idx_shop, idx_m1, idx_m2 = 61, 93, 94
     idx_dock, idx_marsh, idx_grivn, idx_chrch = 29, 28, 27, 59
     idx_camp, idx_yard, idx_kiln = 26, 25, 57
+    idx_top, idx_epi = 89, 90
     with open(os.path.join(outdir, 'map.dat'), 'wb') as f:
         for s in screens:
             f.write(s)
@@ -142,7 +145,10 @@ def main(outdir):
     loc[idx_yard] = 17
     loc[idx_kiln] = 18
     indoor[idx_chrch] = 1
+    loc[idx_top] = 19
+    loc[idx_epi] = 20
     indoor[idx_kiln] = 1
+    indoor[idx_top] = 1
     with open(os.path.join(outdir, 'dink.dat'), 'wb') as f:
         name = b'Pigkeeper'
         f.write(name + b'\x00' * (20 - len(name)))
