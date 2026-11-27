@@ -182,6 +182,14 @@ jobs:
           grep -q "CI_TELEPORT_CHURCH" pigkeeper.log
           grep -q "CH8_CHURCH_OK" pigkeeper.log
           grep -q "CH8_BOOK_FOUND" pigkeeper.log
+          grep -q "CI_TELEPORT_CAMP" pigkeeper.log
+          grep -q "CH9_CAMP_OK" pigkeeper.log
+          grep -q "CI_TELEPORT_YARD" pigkeeper.log
+          grep -q "CH10_YARD_OK" pigkeeper.log
+          grep -q "CH10_QUEUE" pigkeeper.log
+          grep -q "CI_TELEPORT_KILN" pigkeeper.log
+          grep -q "CH10_KILN_OK" pigkeeper.log
+          grep -q "CH10_SMOKE_READY" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
           echo "::group::NOTANIM diag"; grep -aiE "seq|\.ff|couldn|miss" pigkeeper.log | head -20; echo "::endgroup::"
