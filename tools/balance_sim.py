@@ -3,8 +3,10 @@
 import sys, re
 
 PLAYER_DMG_L1 = 4          # مشت پایه منهای دفاع
-TTK_MIN, TTK_MAX = 2, 14   # ثانیه قابل قبول در لول ۱ (ضربه/ثانیه=۱.۲)
+TTK_MIN, TTK_MAX = 2, 14   # دشمن عادی (لول ۱)
+BOSS_MIN, BOSS_MAX = 10, 45  # باس‌ها: نبرد طولانی مجاز (پیشوند نام: باس_ یا دود/گرگ)
 HITS_PER_SEC = 1.2
+BOSSES = ("دود_یادها", "گرگ_قراردادی")
 
 def main(path='pigkeeper/data/enemies.md'):
     rows = []
@@ -16,9 +18,15 @@ def main(path='pigkeeper/data/enemies.md'):
         name, hp, dmg, armor = parts[0], int(parts[1]), int(parts[2]), int(parts[3])
         eff = max(1, PLAYER_DMG_L1 - armor)
         ttk = hp / (eff * HITS_PER_SEC)
-        ok = TTK_MIN <= ttk <= TTK_MAX
+        if name in BOSSES:
+            ok = BOSS_MIN <= ttk <= BOSS_MAX
+            tag = "BOSS"
+        else:
+            ok = TTK_MIN <= ttk <= TTK_MAX
+            tag = ""
+
         rows.append((name, ttk, ok))
-        print(f"{name}: TTK(L1)={ttk:.1f}s {'OK' if ok else '*** OUT OF RANGE ***'}")
+        print(f"{name}{(' ['+tag+']') if tag else ''}: TTK(L1)={ttk:.1f}s {'OK' if ok else '*** OUT OF RANGE ***'}")
     bad = [r for r in rows if not r[2]]
     if bad:
         print(f"BALANCE FAIL: {len(bad)} enemies out of range"); return 1
