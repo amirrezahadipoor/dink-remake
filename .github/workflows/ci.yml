@@ -212,7 +212,7 @@ jobs:
           for STOP in 3 5 8 12; do
             PIG_DEMO_STOP=$STOP ./engine/src/freedink --refdir "$PWD/gamedata" --game "$PWD/gamedata/pigkeeper" --window --debug --truecolor > qa_$STOP.log 2>&1 &
             QPID=$!
-            sleep 16
+            sleep 28
             import -window root qa_shot_$STOP.png || true
             kill $QPID 2>/dev/null || true
             sleep 1
