@@ -176,44 +176,8 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: |
-            adb logcat -G 16M || true
-            adb install android-project/app/build/outputs/apk/debug/app-debug.apk
-            adb logcat -c || true
-            adb shell am start -n ir.pigkeeper.dink/.MainActivity
-            # انتظار مقاوم برای بالا آمدن پروسه (کولد-استارت امولاتور کند است)
-            APPPID=""
-            for k in $(seq 1 15); do
-              sleep 3
-              APPPID=$(adb shell pidof ir.pigkeeper.dink | tr -d '\r')
-              [ -n "$APPPID" ] && break
-            done
-            echo "app pid: $APPPID"
-            if [ -z "$APPPID" ]; then
-              echo "::error::app never started — dumping diagnostics"
-              adb logcat -d > logcat.txt || true
-              adb exec-out screencap -p > emu_boot.png || true
-              grep -aE "pigkeeper|FATAL|AndroidRuntime" logcat.txt | tail -30 || true
-              exit 1
-            fi
-            # جلوگیری از حذف لاگ‌های موتور توسط chatty
-            adb logcat -P "$APPPID" || true
-            sleep 90
-            adb logcat -d > logcat.txt || true
-            adb exec-out screencap -p > emu_boot.png || true
-            echo "--- pigkeeper:"; grep -a "I pigkeeper" logcat.txt | head -6 || true
-            echo "--- engine (SDL/APP):"; grep -a "SDL/APP" logcat.txt | head -20 || true
-            # ===== asserts سخت‌گیرانه =====
-            grep -aq "Extracting game data" logcat.txt
-            grep -aq "Game data extracted" logcat.txt
-            grep -aq "SDL/APP" logcat.txt
-            ! grep -aq "FATAL EXCEPTION" logcat.txt
-            ! grep -aq "UnsatisfiedLinkError" logcat.txt
-            # موتور باید refdir را لاگ کند (پس از رفع chatty)؛ اگر بازهم حذف شد، زنده‌بودن پروسه + صدا کافی است
-            grep -aq "refdir" logcat.txt || grep -aq "AAudioStream" logcat.txt
-            APPPID2=$(adb shell pidof ir.pigkeeper.dink | tr -d '\r')
-            echo "app pid after 100s: $APPPID2"; test -n "$APPPID2"
-            echo "emulator boot checks passed ✓"
+          # نکته: این اکشن هر خط را جدا اجرا می‌کند — کل منطق در یک اسکریپت
+          script: bash tools/ci/emulator-smoke.sh
 
       - name: Compress proof screenshot
         if: always()
