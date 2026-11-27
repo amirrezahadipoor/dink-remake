@@ -8,7 +8,7 @@ preload_seq(233);
 preload_seq(237);
 preload_seq(239);
 //مایلو (پیرمرد) کنار دیوار شرقی
-&t = create_sprite(470, 240, 16, 231, 1);
+&t = create_sprite(540, 295, 16, 231, 1);
 sp_base_walk(&t, 230);
 sp_speed(&t, 0);
 sp_script(&t, "s6milo");
