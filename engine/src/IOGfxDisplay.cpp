@@ -188,6 +188,23 @@ void IOGfxDisplay::centerScaledSurface(IOGfxSurface* surf, SDL_Rect* dst) {
 	}
 }
 
+/* Remake (fix اندروید): نرمال‌شده پنجره → مختصات بازی 640x480 (معکوس letterbox) */
+extern IOGfxDisplay* g_display;
+void remake_screen_to_game(float nx, float ny, int* gx, int* gy) {
+	if (g_display == NULL) { *gx = (int)(nx*640); *gy = (int)(ny*480); return; }
+	double gr = 640.0 / 480.0;
+	double dr = 1.0 * g_display->w / g_display->h;
+	int dw, dh, dx, dy;
+	if (gr < dr) { dh = g_display->h; dw = (int)(640.0 * g_display->h / 480.0); dx = (g_display->w - dw) / 2; dy = 0; }
+	else         { dw = g_display->w; dh = (int)(480.0 * g_display->w / 640.0); dx = 0; dy = (g_display->h - dh) / 2; }
+	double px = nx * g_display->w, py = ny * g_display->h;
+	int x = (int)((px - dx) * 640.0 / dw);
+	int y = (int)((py - dy) * 480.0 / dh);
+	if (x < 0) x = 0; if (x > 639) x = 639;
+	if (y < 0) y = 0; if (y > 479) y = 479;
+	*gx = x; *gy = y;
+}
+
 void IOGfxDisplay::surfToDisplayCoords(IOGfxSurface* backbuffer, int &x, int &y) {
 	SDL_Rect r;
 	centerScaledSurface(backbuffer, &r);

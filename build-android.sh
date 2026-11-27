@@ -32,8 +32,7 @@ A=android-project/app/src/main/assets/freedink-data
 rm -rf "$A"; mkdir -p "$A"
 cp -r gamedata/dink "$A/dink"
 cp -r pigkeeper "$A/pigkeeper"
-cp gamedata/dink/Dink.dat "$A/pigkeeper/dink.dat"
-cp gamedata/dink/Map.dat  "$A/pigkeeper/map.dat"
+# نقشه‌های خودِ ریمیک (dink.dat/map.dat از mapgen) دست نمی‌خورند!
 cp gamedata/dink/Hard.dat "$A/pigkeeper/hard.dat"
 cp gamedata/dink/Dink.ini "$A/pigkeeper/dink.ini"
 mkdir -p "$A/fonts"; cp fonts/Vazirmatn-Regular.ttf "$A/fonts/"

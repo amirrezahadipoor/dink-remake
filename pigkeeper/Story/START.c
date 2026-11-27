@@ -53,6 +53,14 @@ if (&go == 1)
 {
  goto startgame;
 }
+//فقط در CI (env PIG_DEMO_STOP) عنوان خودکار رد می‌شود؛ کاربر واقعی: منو می‌ماند
+int &ci;
+&ci = demo_stop();
+if (&ci == 0)
+{
+ &i = 0;
+ goto titleloop;
+}
 if (&i < 9)
 {
  goto titleloop;

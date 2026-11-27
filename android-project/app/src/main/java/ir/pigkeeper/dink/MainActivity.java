@@ -28,8 +28,15 @@ public class MainActivity extends SDLActivity {
             Os.setenv("HOME", getFilesDir().getAbsolutePath(), true);
             /* 3-8: تنظیمات لمس از SharedPreferences (UI کامل در M12) */
             SharedPreferences p = getSharedPreferences("pigkeeper", MODE_PRIVATE);
+            Os.setenv("FREEDINK_TOUCH", "1", true);
             Os.setenv("FREEDINK_TOUCH_SCALE", p.getString("touch_scale", "1.0"), true);
             Os.setenv("FREEDINK_TOUCH_LEFTY", p.getBoolean("touch_lefty", false) ? "1" : "0", true);
+            /* فقط CI: زنجیره دمو با extra (کاربر عادی هرگز ست نمی‌شود) */
+            String ci = getIntent() != null ? getIntent().getStringExtra("ci") : null;
+            if (ci != null) {
+                Os.setenv("PIG_DEMO_STOP", ci, true);
+                Log.i(TAG, "CI demo mode: PIG_DEMO_STOP=" + ci);
+            }
         } catch (Exception e) {
             Log.e(TAG, "env setup failed", e);
         }
@@ -39,7 +46,8 @@ public class MainActivity extends SDLActivity {
     @Override
     protected String[] getArguments() {
         String refdir = new File(getFilesDir(), "freedink-data").getAbsolutePath();
-        return new String[]{"--refdir", refdir, "--truecolor"};
+        String game = new File(getFilesDir(), "freedink-data/pigkeeper").getAbsolutePath();
+        return new String[]{"--refdir", refdir, "--game", game, "--truecolor"};
     }
 
     @Override

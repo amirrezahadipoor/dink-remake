@@ -404,8 +404,24 @@ static void remake_touch_poll() {
    SDL_FINGERDOWN event so quick button presses never get lost. */
 static struct { int atk, talk, mag, inv, menu; } g_touch_latch;
 
+extern void remake_screen_to_game(float nx, float ny, int* gx, int* gy);
 void remake_touch_finger_down(float x, float y) {
-	if (!g_touch.on || mode < 2) return;
+	if (!g_touch.on) return;
+	if (mode < 2) {
+		/* عنوان/منو: تپ = جهش مطلق اشاره‌گر (brain 13) + کلیک —
+		   مسیر ماوسِ نسبی SDL با لمس دریفت می‌کند */
+		int gx, gy;
+		remake_screen_to_game(x, y, &gx, &gy);
+		for (int i = 1; i <= last_sprite_created; i++) {
+			if (spr[i].active && spr[i].brain == 13) {
+				spr[i].x = gx; spr[i].y = gy;
+				break;
+			}
+		}
+		mouse1 = 1;
+		log_info("TOUCH_TITLE_TAP %d %d", gx, gy);
+		return;
+	}
 	touch_zones_init();
 	if (touch_in_move_zone(x)) return; /* movement zone: handled by polling */
 	int hitany = 0;

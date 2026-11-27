@@ -112,6 +112,10 @@ jobs:
           grep -q "assets/freedink-data/fonts/Vazirmatn-Regular.ttf" apk.lst
           grep -q "assets/freedink-data/pigkeeper/Story/START.c" apk.lst
           grep -q "assets/freedink-data/pigkeeper/map.dat" apk.lst
+          grep -q "assets/freedink-data/pigkeeper/dink.dat" apk.lst
+          # نقشه ریمیک نباید با نقشه پایه جایگزین شده باشد (باگ گزارش کاربر)
+          unzip -p app/build/outputs/apk/debug/app-debug.apk assets/freedink-data/pigkeeper/map.dat > /tmp/apk_map.dat
+          cmp /tmp/apk_map.dat ../pigkeeper/map.dat
           echo "APK content audit passed ✓"
 
       - name: Upload APK
@@ -174,8 +178,7 @@ jobs:
       - name: Fetch game data + build assets (with CI autostart for E2E)
         run: |
           sh fetch-data.sh
-          # فقط برای تست امولاتور: ورود خودکار به گیم‌پلی (APK کاربر دست‌نخورده می‌ماند)
-          sh tools/ci/autostart-patch.sh
+          # دمو حالا داخل START خودِ ریمیک است و با extra اینتنت CI (PIG_DEMO_STOP) روشن می‌شود
           A=android-project/app/src/main/assets/freedink-data
           mkdir -p "$A"
           cp -r gamedata/dink "$A/dink"
@@ -215,6 +218,7 @@ jobs:
         run: |
           sudo apt-get install -y webp >/dev/null 2>&1 || true
           [ -f emu_boot.png ] && cwebp -q 70 -resize 800 0 emu_boot.png -o emu_boot.webp 2>/dev/null || true
+          [ -f emu_title.png ] && cwebp -q 70 -resize 800 0 emu_title.png -o emu_title.webp 2>/dev/null || true
           ls -la emu_boot.* 2>/dev/null || true
 
       - name: Upload emulator proof
@@ -224,6 +228,7 @@ jobs:
           name: emulator-boot-proof
           path: |
             emu_boot.webp
-            emu_boot.png
+            emu_title.webp
             logcat.txt
+            logcat_a.txt
           if-no-files-found: warn

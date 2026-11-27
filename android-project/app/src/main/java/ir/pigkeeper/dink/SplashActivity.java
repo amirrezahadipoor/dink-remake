@@ -67,7 +67,11 @@ public class SplashActivity extends Activity {
     }
 
     private void startGame() {
-        startActivity(new Intent(this, MainActivity.class));
+        Intent fwd = new Intent(this, MainActivity.class);
+        if (getIntent() != null && getIntent().getExtras() != null) {
+            fwd.putExtras(getIntent().getExtras());
+        }
+        startActivity(fwd);
         finish();
     }
 
