@@ -41,8 +41,9 @@ if (&i < 9)
 
 //ورود خودکار به بازی (تست CI — در نسخه نهایی با لمس/کلیک)
 debug("PIGKEEPER_AUTOSTART");
-sp_x(1, 334);
-sp_y(1, 161);
+&player_map = 34;
+sp_x(1, 320);
+sp_y(1, 230);
 sp_base_walk(1, 70);
 sp_base_attack(1, 100);
 set_mode(2);

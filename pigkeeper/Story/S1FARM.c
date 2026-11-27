@@ -7,10 +7,33 @@ int &t;
 int &st;
 debug("CH1_FARM_OK");
 
+&st = flag_get("ch1_fire");
+if (&st == 1)
+{
+ kill_this_task();
+}
+//آتش‌سوزی: وقتی هم تیلی گرفته شده هم قول داده شده
 &st = flag_get("ch1_tilly_caught");
 if (&st == 1)
 {
- //تیلی قبلاً گرفته شده
+ int &pr;
+ &pr = flag_get("ch1_promise");
+ if (&pr == 1)
+ {
+  wait(900);
+  debug("CH1_FIRE_START");
+  screen_shake(900, 7);
+  say_xy("`4بووووم! صدای مهیبی از سمت خانه آمد!", 80, 60);
+  wait(1800);
+  screen_shake(600, 4);
+  say_xy("`4دینک: نه... خونه! مامان!!", 150, 60);
+  wait(1800);
+  flag_set("ch1_fire", 1);
+  journal_done("قولِ جعبه به مادر");
+  journal_add("بازمانده‌های خانه را بگرد");
+  say_xy("`%(فصل ۱ — شبِ بوی دود)", 170, 220);
+  kill_this_task();
+ }
  kill_this_task();
 }
 

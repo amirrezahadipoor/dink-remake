@@ -11,7 +11,27 @@ TILES = 96  # engine reads 97 records; index 0..95 drawn (12x8)
 
 def le(i): return struct.pack('<i', i)
 
-def make_screen(script_name, tile_fn):
+def sprite_record(x=0, y=0, seq=0, frame=1, stype=0, size=100, active=0,
+                  brain=0, script='', speed=0, base_walk=-1, timing=33,
+                  que=0, hard=1, is_warp=0, warp_map=0, warp_x=0, warp_y=0,
+                  touch_damage=0, vision=0, nohit=0):
+    b = bytearray()
+    b += le(x) + le(y) + le(seq) + le(frame) + le(stype) + le(size)
+    b += bytes([1 if active else 0]) + b'\x00'*3
+    b += le(0) + le(0) + le(brain)
+    sc = script.encode('ascii')[:13]
+    b += sc + b'\x00' * (14 - len(sc))
+    b += b'\x00' * 38
+    b += le(speed) + le(base_walk) + le(-1) + le(-1) + le(-1) + le(timing) + le(que) + le(hard)
+    b += le(0)*4                      # alt rect
+    b += le(is_warp) + le(warp_map) + le(warp_x) + le(warp_y) + le(-1)  # parm_seq
+    b += le(-1) + le(0) + le(0) + le(0) + le(0) + le(0) + le(-1) + le(vision)
+    b += le(nohit) + le(touch_damage)
+    b += le(0) * 5
+    assert len(b) == 220, len(b)
+    return bytes(b)
+
+def make_screen(script_name, tile_fn, sprites=()):
     b = bytearray()
     b += b'\x00' * 20                       # name[20]
     for t in range(97):                     # 97 tile records x 80B
@@ -24,8 +44,12 @@ def make_screen(script_name, tile_fn):
         b += b'\x00' * 60                   # buff
     b += b'\x00' * 160                      # v
     b += b'\x00' * 80                       # s
-    for s in range(101):                    # sprites (all inactive)
-        b += b'\x00' * 220
+    sl = list(sprites)[:100]
+    for s in range(101):                    # sprite slots (1-based in engine)
+        if 1 <= s <= len(sl):
+            b += sl[s-1]
+        else:
+            b += b'\x00' * 220
     sc = script_name.encode('ascii')[:20]
     b += sc + b'\x00' * (21 - len(sc))      # script[21]
     b += b'\x00' * 1018
@@ -43,19 +67,34 @@ def grass_with_path(t):
         return 128 + 8 + (x % 4)
     return 128 + (t % 4)
 
+def wood(t):
+    # indoor-ish: از واریانت‌های تیره‌تر همان شیت (برش عمودی)
+    return 128 + 32 + (t % 4)
+
 def main(outdir):
-    screens = [
-        make_screen('s1farm',  grass),            # map index 1
-        make_screen('s1squar', grass_with_path),  # map index 2 (east)
+    # چیدمان گرید 32xN: خانه (2) شمالِ مزرعه (34)؛ میدان (35) شرق مزرعه
+    farm_sprites = [
+        # درخت‌های قاب صحنه (seq 142 از Dink.ini: lands/trees)
+        sprite_record(x=120, y=160, seq=142, frame=3, active=1, hard=1),
+        sprite_record(x=560, y=150, seq=142, frame=5, active=1, hard=1),
+        sprite_record(x=90,  y=380, seq=142, frame=1, active=1, hard=1),
     ]
+    screens = [
+        make_screen('s1house', wood),                       # 1: خانه (indoor)
+        make_screen('s1farm',  grass, farm_sprites),        # 2: مزرعه
+        make_screen('s1squar', grass_with_path),            # 3: میدان
+    ]
+    idx_house, idx_farm, idx_square = 2, 34, 35
     with open(os.path.join(outdir, 'map.dat'), 'wb') as f:
         for s in screens:
             f.write(s)
     loc = [0] * 769
     music = [0] * 769
     indoor = [0] * 769
-    loc[1] = 1
-    loc[2] = 2
+    loc[idx_house] = 1
+    loc[idx_farm] = 2
+    loc[idx_square] = 3
+    indoor[idx_house] = 1
     with open(os.path.join(outdir, 'dink.dat'), 'wb') as f:
         name = b'Pigkeeper'
         f.write(name + b'\x00' * (20 - len(name)))

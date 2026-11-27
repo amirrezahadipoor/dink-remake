@@ -1501,6 +1501,17 @@ void dc_flag_get(int script, int* yield, int* preturnint, char* name)
   free(buf);
 }
 
+/* Remake (M1): screen shake for cutscenes/impacts */
+extern void remake_screen_shake(int ms, int mag);
+void dc_screen_shake(int script, int* yield, int* preturnint, int ms, int mag)
+{
+  if (ms < 0) ms = 0; if (ms > 5000) ms = 5000;
+  if (mag < 1) mag = 1; if (mag > 24) mag = 24;
+  remake_screen_shake(ms, mag);
+  log_info("SCREEN_SHAKE ms=%d mag=%d", ms, mag);
+  *preturnint = 1;
+}
+
 /* Remake (2-9): game clock API for scripts (NPC schedules, quests) */
 void dc_get_hour(int script, int* yield, int* preturnint)
 {
@@ -2415,6 +2426,7 @@ void dinkc_bindings_init()
   /* Remake (2-8): persistent story flags */
   DCBD_ADD(flag_set,                  {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(flag_get,                  {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(screen_shake,              {1,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   /* Remake (2-9): game clock */
   DCBD_ADD(get_hour,                 {-1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(set_hour,                  {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);

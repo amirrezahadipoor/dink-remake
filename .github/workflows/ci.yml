@@ -154,6 +154,7 @@ jobs:
           # فصل ۱ روی نقشه خودِ ریمیک
           grep -q "CH1_FARM_OK" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
+          grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
 
       - name: Upload remake artifacts
         if: always()

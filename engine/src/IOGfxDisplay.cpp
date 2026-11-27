@@ -129,11 +129,23 @@ void IOGfxDisplay::toggleScreenKeyboard() {
 }
 
 
+/* Remake (M1): screen shake — applied here so BOTH renderers get it */
+int remake_shake_mag = 0;
+Uint32 remake_shake_until = 0;
+void remake_screen_shake(int ms, int mag) {
+	remake_shake_until = SDL_GetTicks() + (Uint32)ms;
+	remake_shake_mag = mag;
+}
+
 void IOGfxDisplay::flipStretch(IOGfxSurface* backbuffer) {
 	if (backbuffer == NULL)
 		SDL_SetError("IOGfxDisplay::flipStretch: passed a NULL surface");
 	SDL_Rect dstrect;
 	centerScaledSurface(backbuffer, &dstrect);
+	if (remake_shake_mag > 0 && SDL_GetTicks() < remake_shake_until) {
+		dstrect.x += (rand() % (remake_shake_mag * 2 + 1)) - remake_shake_mag;
+		dstrect.y += (rand() % (remake_shake_mag * 2 + 1)) - remake_shake_mag;
+	}
 	flip(backbuffer, &dstrect, true, true);
 }
 
