@@ -30,6 +30,8 @@
 /* #undef ENABLE_NLS */
 
 #define LOCALEDIR "/sdcard/nonexistent-locale"
+/* unused on Android (we always pass --refdir), but referenced in paths.cpp */
+#define BUILD_DATA_DIR "/usr/local/share"
 
 /* gnulib attribute macros (normally emitted by autotools config.h) */
 #ifndef _GL_ATTRIBUTE_PURE
