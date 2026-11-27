@@ -17,5 +17,26 @@ sp_script(&t, "s8hollow");
 &t = create_sprite(420, 260, 16, 241, 3);
 sp_script(&t, "s8hollow");
 debug("CH8_HOLLOW_FOLK");
+//S10: پستچی خاکسترگرفته + سه نامه برداشتنی
+preload_seq(231);
+&t = create_sprite(120, 300, 16, 231, 1);
+sp_speed(&t, 0);
+sp_script(&t, "q10post");
+int &q;
+&q = flag_get("q10_letters");
+if (&q < 3)
+{
+ preload_seq(66);
+ &t = create_sprite(250, 350, 0, 66, 8);
+ sp_script(&t, "q10letr");
+ sp_touch_damage(&t, -1);
+ &t = create_sprite(480, 200, 0, 66, 8);
+ sp_script(&t, "q10letr");
+ sp_touch_damage(&t, -1);
+ &t = create_sprite(360, 310, 0, 66, 8);
+ sp_script(&t, "q10letr");
+ sp_touch_damage(&t, -1);
+}
+debug("Q10_SET");
 kill_this_task();
 }

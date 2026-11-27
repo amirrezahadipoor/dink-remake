@@ -12,6 +12,17 @@ sp_hard(&t, 1);
 sp_hard(&t, 1);
 &t = create_sprite(320, 120, 0, 63, 5);
 sp_hard(&t, 1);
+//S6: زن جوان کنار خیمه فرقه
+preload_seq(241);
+&t = create_sprite(540, 300, 16, 241, 1);
+sp_speed(&t, 0);
+sp_script(&t, "q6widow");
+debug("Q6_WIDOW_HERE");
+//S12: پیرزنِ ساعت شکسته
+preload_seq(221);
+&t = create_sprite(90, 250, 16, 221, 5);
+sp_speed(&t, 0);
+sp_script(&t, "q12old");
 int &st;
 &st = flag_get("ch5_port_seen");
 if (&st == 1)

@@ -9,6 +9,7 @@ sp_hitpoints(&current_sprite, 45);
 sp_defense(&current_sprite, 2);
 sp_strength(&current_sprite, 7);
 sp_touch_damage(&current_sprite, 7);
+sp_gold(&current_sprite, 40);
 sp_exp(&current_sprite, 60);
 sp_target(&current_sprite, 1);
 debug("CH10_SMOKE_READY");

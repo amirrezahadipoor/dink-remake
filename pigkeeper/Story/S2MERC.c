@@ -10,6 +10,7 @@ sp_hitpoints(&current_sprite, 22);
 sp_defense(&current_sprite, 1);
 sp_strength(&current_sprite, 5);
 sp_touch_damage(&current_sprite, 5);
+sp_gold(&current_sprite, 7);
 sp_exp(&current_sprite, 18);
 preload_seq(131);
 preload_seq(133);

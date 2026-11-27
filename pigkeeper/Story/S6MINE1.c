@@ -18,6 +18,16 @@ sp_script(&t, "s6pill");
 &t = create_sprite(380, 330, 9, 131, 1);
 sp_script(&t, "s6pill");
 debug("CH6_PILLS_SPAWNED");
+//S9: مینی‌باس اختیاری — حفار سفید
+int &q;
+&q = flag_get("q9_done");
+if (&q == 0)
+{
+ &t = create_sprite(540, 150, 9, 131, 1);
+ sp_script(&t, "q9digger");
+ sp_size(&t, 170);
+ debug("Q9_DIGGER_HERE");
+}
 spawn("s6m1c");
 kill_this_task();
 }

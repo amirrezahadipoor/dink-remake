@@ -10,6 +10,7 @@ sp_hitpoints(&current_sprite, 10);
 sp_defense(&current_sprite, 0);
 sp_strength(&current_sprite, 2);
 sp_touch_damage(&current_sprite, 2);
+sp_gold(&current_sprite, 2);
 sp_exp(&current_sprite, 6);
 sp_target(&current_sprite, 1);
 debug("CH6_PILL_READY");

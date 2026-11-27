@@ -25,6 +25,16 @@ preload_seq(539);
 sp_script(&t, "s10smoke");
 sp_size(&t, 130);
 debug("CH10_SMOKE_SPAWNED");
+//S12: چرخ‌دنده ساعت، افتاده کنار کوره
+int &q;
+&q = flag_get("q12_gear");
+if (&q == 0)
+{
+ preload_seq(66);
+ &t = create_sprite(150, 350, 0, 66, 10);
+ sp_script(&t, "q12gear");
+ sp_touch_damage(&t, -1);
+}
 spawn("s10kc");
 kill_this_task();
 }
