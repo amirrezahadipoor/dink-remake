@@ -308,11 +308,45 @@ void replace_norealloc(const char* find, const char* repl, char* line)
 
 
 /**
+ * Remake: return 1 if 'source' is already valid UTF-8 *and* contains
+ * at least one multi-byte sequence (i.e. genuinely non-ASCII UTF-8).
+ * Legacy Latin-1 scripts with stray high bytes are invalid UTF-8, so
+ * they keep going through the Latin-1 conversion below.
+ */
+static int is_nonascii_valid_utf8(const unsigned char* s)
+{
+  int has_multibyte = 0;
+  while (*s)
+    {
+      if (*s < 0x80) { s++; continue; }
+      int len;
+      if      ((*s & 0xE0) == 0xC0) len = 1;
+      else if ((*s & 0xF0) == 0xE0) len = 2;
+      else if ((*s & 0xF8) == 0xF0) len = 3;
+      else return 0;
+      for (int i = 0; i < len; i++)
+        if ((*(++s) & 0xC0) != 0x80)
+          return 0;
+      s++;
+      has_multibyte = 1;
+    }
+  return has_multibyte;
+}
+
+/**
  * Convert Latin-1-encoded 'source' to UTF-8-encoded. Result will
  * always be NULL-terminated.
  */
 char* latin1_to_utf8(char* source)
 {
+  /* Remake: UTF-8 scripts (e.g. the Persian remake story) must pass
+     through untouched instead of being double-encoded. */
+  if (is_nonascii_valid_utf8((unsigned char*)source))
+    {
+      char* copy = (char*)xmalloc(strlen(source) + 1);
+      strcpy(copy, source);
+      return copy;
+    }
   int cur_alloc_size = 512;
   const int step = 256;
   unsigned char* dest = (unsigned char*)xmalloc(cur_alloc_size);
