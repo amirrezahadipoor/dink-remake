@@ -18,10 +18,9 @@ ENGINE_EXCLUDE := \
 ENGINE_FILES := $(filter-out $(ENGINE_EXCLUDE), $(ENGINE_ALL))
 
 # --- the few gnulib portability bits actually needed on bionic ---
+# xalloc_die خود موتور در app.cpp تعریف شده — نسخه gnulib حذف
 GNULIB_FILES := \
   $(GNULIB)/xmalloc.c \
-  $(GNULIB)/xalloc-die.c \
-  $(GNULIB)/exitfail.c \
   $(GNULIB)/hash.c
 
 # --- SDL2_gfx has no Android.mk upstream: compile it into main ---
