@@ -22,7 +22,10 @@ if (&st == 0)
 &st = flag_get("ch2_wolf_down");
 if (&st == 0)
 {
- preload_seq(640);
+ preload_seq(641);
+ preload_seq(643);
+ preload_seq(647);
+ preload_seq(649);
  preload_seq(632);
  preload_seq(634);
  preload_seq(636);
@@ -34,7 +37,7 @@ if (&st == 0)
  say_xy("`4گرگ قراردادی: قرارداد می‌گه جعبه. درباره‌ی جنازه‌ها چیزی ننوشته.", 40, 50);
  wait(2600);
  cinema(0);
- &t = create_sprite(480, 250, 9, 640, 1);
+ &t = create_sprite(480, 250, 9, 641, 1);
  sp_script(&t, "s2wolf");
  debug("CH2_WOLF_SPAWNED");
  kill_this_task();
