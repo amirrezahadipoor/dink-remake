@@ -101,5 +101,21 @@ sp_y(1, 240);
 load_screen();
 draw_screen();
 debug("CI_TELEPORT_BOSS");
+wait(4000);
+//دموی پرده ۲: بندر و میخانه
+flag_set("ch2_mara_met", 1);
+&player_map = 30;
+sp_x(1, 320);
+sp_y(1, 300);
+load_screen();
+draw_screen();
+debug("CI_TELEPORT_PORT");
+wait(4000);
+&player_map = 62;
+sp_x(1, 320);
+sp_y(1, 330);
+load_screen();
+draw_screen();
+debug("CI_TELEPORT_TAVERN");
 kill_this_task();
 }

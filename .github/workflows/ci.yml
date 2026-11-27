@@ -162,6 +162,11 @@ jobs:
           grep -q "CI_TELEPORT_BOSS" pigkeeper.log
           grep -q "CH2_WOLF_SPAWNED" pigkeeper.log
           grep -q "CH2_WOLF_READY" pigkeeper.log
+          grep -q "CI_TELEPORT_PORT" pigkeeper.log
+          grep -q "CH5_PORT_OK" pigkeeper.log
+          grep -q "CH5_PORT_ARRIVED" pigkeeper.log
+          grep -q "CI_TELEPORT_TAVERN" pigkeeper.log
+          grep -q "CH5_TAV_OK" pigkeeper.log
           grep -q "JOURNAL_ADD" pigkeeper.log
           grep -q "SCREEN_SHAKE" pigkeeper.log || true  # شیک فقط پس از تعامل
           echo "::group::NOTANIM diag"; grep -aiE "seq|\.ff|couldn|miss" pigkeeper.log | head -20; echo "::endgroup::"
