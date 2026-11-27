@@ -86,7 +86,9 @@ jobs:
           export DISPLAY=:99
           cp -r pigkeeper gamedata/pigkeeper
           # prototype demo runs on the base world until the remake ships its own maps (phase 5)
-          cp gamedata/dink/Dink.dat gamedata/dink/Map.dat gamedata/dink/Hard.dat gamedata/pigkeeper/
+          cp gamedata/dink/Dink.dat gamedata/pigkeeper/dink.dat
+          cp gamedata/dink/Map.dat  gamedata/pigkeeper/map.dat
+          cp gamedata/dink/Hard.dat gamedata/pigkeeper/hard.dat
           ./engine/src/freedink --refdir "$PWD/gamedata" --game pigkeeper --window --debug > pigkeeper.log 2>&1 &
           PID=$!
           sleep 7
