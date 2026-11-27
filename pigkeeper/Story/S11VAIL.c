@@ -2,6 +2,13 @@
 void main( void )
 {
 debug("CH11_VAIL_SCENE");
+//حالت گالری QA: مستقیم به منو (بدون دیالوگ‌های طولانی)
+int &dq;
+&dq = demo_stop();
+if (&dq == 12)
+{
+ goto choicemenu;
+}
 say_frame(1);
 cinema(1);
 say_xy("`4وَیل: می‌دونی چرا اول این دفتر رو می‌سوزونم، پسرم؟", 90, 55);
@@ -22,6 +29,7 @@ debug("CH11_LIA_REVEAL");
 achieve("شماره‌ی یک");
 cinema(0);
 say_frame(0);
+choicemenu:
 //منوی انتخاب پایان — دکمه‌های لمسی/کلیکی (هم‌تراز با چیدمان جدید)
 say_frame(1);
 clear_buttons();
