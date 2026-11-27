@@ -129,6 +129,18 @@ void IOGfxDisplay::toggleScreenKeyboard() {
 }
 
 
+/* Remake (M14): scene color tint (lighting mood) — night/cave/fire */
+int remake_tint_r = 255, remake_tint_g = 255, remake_tint_b = 255;
+void remake_scene_tint(int r, int g, int b) {
+	if (r < 30) r = 30; if (r > 255) r = 255;
+	if (g < 30) g = 30; if (g > 255) g = 255;
+	if (b < 30) b = 30; if (b > 255) b = 255;
+	remake_tint_r = r; remake_tint_g = g; remake_tint_b = b;
+}
+
+int remake_tint_locked = 0; /* M14: scripted scenes own the tint */
+int remake_cinema_on = 0;   /* M13: letterbox bars */
+
 /* Remake (M1): screen shake — applied here so BOTH renderers get it */
 int remake_shake_mag = 0;
 Uint32 remake_shake_until = 0;

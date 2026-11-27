@@ -22,6 +22,7 @@ if (&st == 1)
  {
   wait(900);
   debug("CH1_FIRE_START");
+  scene_tint(255, 130, 85);
   screen_shake(900, 7);
   say_xy("`4بووووم! صدای مهیبی از سمت خانه آمد!", 80, 60);
   wait(1800);
@@ -32,6 +33,8 @@ if (&st == 1)
   journal_done("قولِ جعبه به مادر");
   journal_add("بازمانده‌های خانه را بگرد");
   say_xy("`%(فصل ۱ — شبِ بوی دود)", 170, 220);
+  wait(2500);
+  scene_tint(255, 255, 255);
   kill_this_task();
  }
  kill_this_task();

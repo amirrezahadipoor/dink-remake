@@ -199,9 +199,14 @@ void IOGfxDisplaySW::flip(IOGfxSurface* backbuffer, SDL_Rect* dstrect,
 
 	/* Remake (perf): brightness/night-dim via GPU texture color-mod
 	   instead of a 920K-pixel CPU loop per frame (gfx_fade_apply). */
-	Uint8 cmod = 255;
-	if (truecolor && brightness < 256)
-		cmod = (Uint8)((brightness * 255) / 256);
+	extern int remake_tint_r, remake_tint_g, remake_tint_b;
+	Uint8 cr = 255, cg = 255, cb = 255;
+	if (truecolor) {
+		int br = (brightness < 256) ? (int)brightness : 256;
+		cr = (Uint8)((remake_tint_r * br) / 256);
+		cg = (Uint8)((remake_tint_g * br) / 256);
+		cb = (Uint8)((remake_tint_b * br) / 256);
+	}
 
 	if (truecolor) {
 		if (source->format->format != getFormat())
@@ -226,11 +231,11 @@ void IOGfxDisplaySW::flip(IOGfxSurface* backbuffer, SDL_Rect* dstrect,
 
 	if (interpolation) {
 		SDL_UpdateTexture(render_texture_linear, NULL, source->pixels, source->pitch);
-		SDL_SetTextureColorMod(render_texture_linear, cmod, cmod, cmod);
+		SDL_SetTextureColorMod(render_texture_linear, cr, cg, cb);
 		SDL_RenderCopy(renderer, render_texture_linear, NULL, dstrect);
 	} else {
 		SDL_UpdateTexture(render_texture_nearest, NULL, source->pixels, source->pitch);
-		SDL_SetTextureColorMod(render_texture_nearest, cmod, cmod, cmod);
+		SDL_SetTextureColorMod(render_texture_nearest, cr, cg, cb);
 		SDL_RenderCopy(renderer, render_texture_nearest, NULL, dstrect);
 	}
 

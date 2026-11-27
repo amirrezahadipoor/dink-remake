@@ -246,7 +246,6 @@ static void remake_clock_and_night() {
 	static int daylen = -2;
 	static Uint32 lastms = 0;
 	static int night_applied = 0;
-	const double NIGHT_BRIGHT = 170;
 	if (daylen == -2) {
 		const char* e = getenv("FREEDINK_DAYLEN");
 		daylen = (e != NULL) ? atoi(e) : 1200;
@@ -260,19 +259,19 @@ static void remake_clock_and_night() {
 		while (remake_clock_min >= 1440) remake_clock_min -= 1440;
 	}
 	lastms = now;
-	/* night = 20:00..05:00 */
+	/* night = 20:00..05:00 — M14: tint آبی‌فام (مستقل از brightness فیدها) */
 	int hour = ((int)(remake_clock_min / 60)) % 24;
 	int night = (hour >= 20 || hour < 5);
-	/* don't fight running fades */
-	if (process_downcycle || process_upcycle)
+	extern void remake_scene_tint(int r, int g, int b);
+	extern int remake_tint_locked; /* صحنه‌های اسکریپتی tint را قفل می‌کنند */
+	if (remake_tint_locked)
 		return;
-	if (mode >= 2 && night && g_display->brightness == 256) {
-		g_display->brightness = NIGHT_BRIGHT;
-		if (!night_applied) log_info("NIGHT_DIM_ON (hour %d)", hour);
+	if (mode >= 2 && night) {
+		if (!night_applied) { remake_scene_tint(150, 165, 225); log_info("NIGHT_TINT_ON (hour %d)", hour); }
 		night_applied = 1;
-	} else if ((!night || mode < 2) && night_applied && g_display->brightness == NIGHT_BRIGHT) {
-		g_display->brightness = 256;
-		log_info("NIGHT_DIM_OFF (hour %d)", hour);
+	} else if (night_applied) {
+		remake_scene_tint(255, 255, 255);
+		log_info("NIGHT_TINT_OFF (hour %d)", hour);
 		night_applied = 0;
 	}
 }

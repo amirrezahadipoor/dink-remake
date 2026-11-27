@@ -1501,6 +1501,25 @@ void dc_flag_get(int script, int* yield, int* preturnint, char* name)
   free(buf);
 }
 
+/* Remake (M13/M14): cinematics */
+extern int remake_cinema_on;
+extern int remake_tint_locked;
+extern void remake_scene_tint(int r, int g, int b);
+void dc_cinema(int script, int* yield, int* preturnint, int on)
+{
+  remake_cinema_on = (on != 0);
+  log_info("CINEMA_%s", on ? "ON" : "OFF");
+  *preturnint = 1;
+}
+void dc_scene_tint(int script, int* yield, int* preturnint, int r, int g, int b)
+{
+  if (r == 255 && g == 255 && b == 255) remake_tint_locked = 0;
+  else remake_tint_locked = 1;
+  remake_scene_tint(r, g, b);
+  log_info("SCENE_TINT %d,%d,%d", r, g, b);
+  *preturnint = 1;
+}
+
 /* Remake (M11): local achievements (flag-backed, zero network) */
 void dc_achieve(int script, int* yield, int* preturnint, char* title)
 {
@@ -2447,6 +2466,8 @@ void dinkc_bindings_init()
   /* Remake (2-8): persistent story flags */
   DCBD_ADD(flag_set,                  {2,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(flag_get,                  {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(cinema,                    {1,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
+  DCBD_ADD(scene_tint,                {1,1,1,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(achieve,                   {2,0,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   DCBD_ADD(screen_shake,              {1,1,0,0,0,0,0,0,0,0}, DCPS_GOTO_NEXTLINE, 0, 0);
   /* Remake (2-9): game clock */

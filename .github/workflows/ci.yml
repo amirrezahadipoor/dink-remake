@@ -107,7 +107,7 @@ jobs:
           grep -q "CI_DAY_OK" freedink.log
           grep -q "CLOCK_SET: hour 22" freedink.log
           grep -q "CI_NIGHT_OK" freedink.log
-          grep -q "NIGHT_DIM_ON" freedink.log
+          grep -q "NIGHT_TINT_ON" freedink.log
           grep -q "FLAGS_SAVED: slot 7 (2 flags)" freedink.log
           F7=$(find ~/.dink -name 'flags7.txt' | head -1); test -n "$F7"
           grep -q "CLOCK|1320" "$F7"

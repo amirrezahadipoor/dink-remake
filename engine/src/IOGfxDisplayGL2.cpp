@@ -297,7 +297,7 @@ bool IOGfxDisplayGL2::createPrograms() {
 	fliprgb->fshader =
 		"varying vec2 f_texcoord;                         \n"
 		"uniform sampler2D texture;                       \n"
-		"uniform float brightness;                        \n"
+		"uniform vec3 brightness;                         \n"
 		"                                                 \n"
 		"void main(void) {                                \n"
 		"  vec4 f = texture2D(texture, f_texcoord);       \n"
@@ -537,7 +537,14 @@ void IOGfxDisplayGL2::flip(IOGfxSurface* backbuffer, SDL_Rect* dstrect,
 	}
 
 	if (truecolor)
-		gl->Uniform1f(prog->uniforms["brightness"], brightness/256.0);
+		{
+			extern int remake_tint_r, remake_tint_g, remake_tint_b;
+			float br = (float)(brightness/256.0);
+			gl->Uniform3f(prog->uniforms["brightness"],
+				br * remake_tint_r / 255.0f,
+				br * remake_tint_g / 255.0f,
+				br * remake_tint_b / 255.0f);
+		}
 
 	// Y-inversed projection for top-left origin and top-bottom textures
 	// Beware that rotation is reversed too

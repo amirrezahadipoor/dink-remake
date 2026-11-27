@@ -229,6 +229,20 @@ void AppFreeDink::logic() {
 			extern void remake_touch_overlay_render();
 			remake_touch_overlay_render();
 		}
+		{ /* remake (M13): cinematic letterbox bars */
+			extern int remake_cinema_on;
+			if (remake_cinema_on) {
+				static IOGfxSurface* bar = NULL;
+				if (bar == NULL) {
+					SDL_Surface* b = SDL_CreateRGBSurfaceWithFormat(0, 640, 50, 32, SDL_PIXELFORMAT_ARGB8888);
+					SDL_FillRect(b, NULL, SDL_MapRGBA(b->format, 0, 0, 0, 255));
+					bar = g_display->upload(b);
+				}
+				SDL_Rect top = {0, 0, 640, 50}, bot = {0, 430, 640, 50};
+				IOGFX_backbuffer->blit(bar, NULL, &top);
+				IOGFX_backbuffer->blit(bar, NULL, &bot);
+			}
+		}
 		g_display->flipStretch(IOGFX_backbuffer); // game area
 		freedink_controls_renderer_render(); // TODO: always display me on flip_it
 	}
